@@ -1,0 +1,298 @@
+package main
+
+import (
+	"fmt"
+	"math/rand"
+	"strings"
+	"time"
+
+	"github.com/osm/irc"
+	"github.com/osm/pastebin"
+)
+
+// factoidRandom initializes the random source.
+var factoidRandom = rand.New(rand.NewSource(time.Now().UnixNano()))
+
+// initFactoidDefaults sets default values for all settings.
+func (b *bot) initFactoidDefaults() {
+	// Commands
+	if b.IRC.FactoidCmdAdd == "" {
+		b.IRC.FactoidCmdAdd = "!add"
+	}
+	if b.IRC.FactoidCmdAddDelimiter == "" {
+		b.IRC.FactoidCmdAddDelimiter = " _is_ "
+	}
+	if b.IRC.FactoidCmdDelete == "" {
+		b.IRC.FactoidCmdDelete = "!forget"
+	}
+	if b.IRC.FactoidCmdSnoop == "" {
+		b.IRC.FactoidCmdSnoop = "!snoop"
+	}
+
+	// Messages
+	if b.IRC.FactoidMsgAdd == "" {
+		b.IRC.FactoidMsgAdd = "noted"
+	}
+	if b.IRC.FactoidMsgDelete == "" {
+		b.IRC.FactoidMsgDelete = "*removed*"
+	}
+	if b.IRC.FactoidMsgSnoop == "" {
+		b.IRC.FactoidMsgSnoop = "<id>: <author> taught me that <trigger> is <reply> <timestamp>"
+	}
+	if b.IRC.FactoidMsgIs == "" {
+		b.IRC.FactoidMsgIs = "is"
+	}
+
+	// Grammar
+	if b.IRC.FactoidGrammarAction == "" {
+		b.IRC.FactoidGrammarAction = "<action>"
+	}
+	if b.IRC.FactoidGrammarRandomWho == "" {
+		b.IRC.FactoidGrammarRandomWho = "<randomwho>"
+	}
+	if b.IRC.FactoidGrammarReply == "" {
+		b.IRC.FactoidGrammarReply = "<reply>"
+	}
+	if b.IRC.FactoidGrammarWho == "" {
+		b.IRC.FactoidGrammarWho = "<who>"
+	}
+}
+
+// factoidHandler is the main entry point for all factoid related commands.
+func (b *bot) factoidHandler(m *irc.Message) {
+	if b.shouldIgnore(m) {
+		return
+	}
+
+	// Parse the action
+	a := b.parseAction(m).(*privmsgAction)
+	if !a.validChannel {
+		return
+	}
+
+	// Determine which action to take.
+	if a.cmd == b.IRC.FactoidCmdAdd && len(a.args) >= 3 {
+		msg := strings.Replace(a.msg, fmt.Sprintf("%s ", b.IRC.FactoidCmdAdd), "", 1)
+		dpos := strings.Index(msg, b.IRC.FactoidCmdAddDelimiter)
+		if dpos == -1 {
+			return
+		}
+
+		b.factoidHandleInsertFact(
+			a.nick,
+			msg[0:dpos],
+			msg[dpos+len(b.IRC.FactoidCmdAddDelimiter):],
+		)
+	} else if a.cmd == b.IRC.FactoidCmdDelete && len(a.args) == 1 {
+		b.factoidHandleDelete(a.args[0])
+	} else if a.cmd == b.IRC.FactoidCmdSnoop && len(a.args) >= 1 {
+		b.factoidHandleSnoop(
+			a.nick,
+			strings.Replace(a.msg, fmt.Sprintf("%s ", b.IRC.FactoidCmdSnoop), "", 1),
+		)
+	} else {
+		b.factoidHandleFact(a)
+	}
+}
+
+// factoidHandleDelete deletes the given factoid if the id exists. If the id
+// doesn't exist it will silently ignore the message.
+func (b *bot) factoidHandleDelete(id string) {
+	// We expect a valid UUID to be sent.
+	if !isUUID(id) {
+		return
+	}
+
+	// Prepare the UPDATE statement. We are not actually deleting the
+	// factoid, we'll just hide it so that it can be restored if we have
+	// someone deleting things we want to keep.
+	stmt, err := b.prepare("UPDATE factoid SET is_deleted = 1 WHERE id = ?")
+	if err != nil {
+		b.logger.Printf("factoidHandleDelete: %v", err)
+		b.privmsgf(b.DB.Err)
+		return
+	}
+	defer stmt.Close()
+
+	// Execute the UPDATE statement.
+	_, err = stmt.Exec(id)
+	if err != nil {
+		b.logger.Printf("factoidHandleDelete: %v", err)
+		b.privmsgf(b.DB.Err)
+		return
+	}
+
+	// Send a notice that the factoid was removed.
+	b.privmsgf(b.IRC.FactoidMsgDelete)
+}
+
+// factoidHandleSnoop finds information about the given factoid. If there are
+// more than five factoids found for the given trigger it'll send the message
+// as a private message instead so we don't flood the channel.
+func (b *bot) factoidHandleSnoop(nick, trigger string) {
+	// Get all the relevant factoid information
+	rows, err := b.query("SELECT id, author, timestamp, reply FROM factoid WHERE trigger = ? AND is_deleted = 0", trigger)
+	if err != nil {
+		b.logger.Printf("factoidHandleSnoop: %v", err)
+		b.privmsgf(b.DB.Err)
+		return
+	}
+	defer rows.Close()
+
+	// We'll setup a struct so that we more easily can iterate over all
+	// the factoids.
+	type fact struct {
+		id        string
+		author    string
+		timestamp string
+		reply     string
+	}
+
+	// Fetch the facts.
+	var facts []fact
+	for rows.Next() {
+		var i, a, t, r string
+		rows.Scan(&i, &a, &t, &r)
+		facts = append(facts, fact{i, a, t, r})
+	}
+
+	// Determine the target of the information.
+	var target string
+	if len(facts) > 5 {
+		target = "pastebin"
+	} else {
+		target = b.IRC.Channel
+	}
+
+	// Send the information back to the given target.
+	var pastebinCode string
+
+	for _, f := range facts {
+		data := map[string]string{
+			"<id>":        f.id,
+			"<author>":    f.author,
+			"<trigger>":   trigger,
+			"<reply>":     f.reply,
+			"<timestamp>": f.timestamp,
+		}
+
+		if target == "pastebin" {
+			code := b.IRC.FactoidMsgSnoop
+			for k, v := range data {
+				code = strings.ReplaceAll(code, k, v)
+			}
+
+			if pastebinCode == "" {
+				pastebinCode = fmt.Sprintf("%s", code)
+			} else {
+				pastebinCode = fmt.Sprintf("%s\n%s", pastebinCode, code)
+			}
+
+		} else {
+			b.privmsgph(b.IRC.FactoidMsgSnoop, data)
+		}
+	}
+
+	if target == "pastebin" {
+		if b.IRC.PastebinAPIKey == "" {
+			b.logger.Printf("factoidHandleSnoop: you need to set a pastebin api key\n")
+			return
+		}
+		pb := pastebin.New(b.IRC.PastebinAPIKey)
+
+		var url string
+		url, err = pb.NewPaste(pastebinCode, trigger, pastebin.Unlisted, pastebin.TenMinutes)
+		if err != nil {
+			b.logger.Printf("factoidHandleSnoop: pastebin err: %v\n", err)
+			return
+		}
+
+		b.privmsgf(url)
+	}
+}
+
+// factoidHandleInsertFact inserts a new factoid into the database.
+func (b *bot) factoidHandleInsertFact(author, trigger, reply string) {
+	// Prepare the INSERT statement.
+	stmt, err := b.prepare("INSERT INTO factoid (id, timestamp, author, trigger, reply, is_deleted) VALUES(?, ?, ?, ?, ?, 0)")
+	if err != nil {
+		b.logger.Printf("factoidHandleInsertFact: %v", err)
+		b.privmsgf(b.DB.Err)
+		return
+	}
+	defer stmt.Close()
+
+	// Execute it.
+	_, err = stmt.Exec(newUUID(), newTimestamp(), author, trigger, reply)
+	if err != nil {
+		b.logger.Printf("factoidHandleInsertFact: %v", err)
+		b.privmsgf(b.DB.Err)
+		return
+	}
+
+	// ... and send a notice that the fact has been stored.
+	b.privmsgf(b.IRC.FactoidMsgAdd)
+}
+
+// factoidHandleFact checks whether the message in the action is a known
+// factoid. If it is, we'll parse the factoid and send the results back to the
+// channel.
+func (b *bot) factoidHandleFact(a *privmsgAction) {
+	// Let's check whether the message is a known trigger.
+	rows, err := b.query("SELECT reply FROM factoid WHERE trigger = ? AND is_deleted = 0", a.msg)
+	if err != nil {
+		b.logger.Printf("factoidHandleFact: %v", err)
+		b.privmsgf(b.DB.Err)
+		return
+	}
+	defer rows.Close()
+
+	// There can be more than one factoid for a trigger. So let's store
+	// all of them.
+	var factoids []string
+	for rows.Next() {
+		var f string
+		rows.Scan(&f)
+		factoids = append(factoids, f)
+	}
+
+	// No factoids, return early.
+	if len(factoids) < 1 {
+		return
+	}
+
+	// If factoid rate is set, we'll only reply with the found factoid if
+	// the random number is greater than the defined value in the config.
+	if b.IRC.FactoidRate > 0 {
+		if b.IRC.FactoidRate >= factoidRandom.Intn(100) {
+			return
+		}
+	}
+
+	// Get a random factoid from the slice.
+	factoid := factoids[rand.Intn(len(factoids))]
+
+	// Replace all occurences of <who> with the senders nick.
+	i := strings.Index(factoid, b.IRC.FactoidGrammarWho)
+	for i != -1 {
+		factoid = factoid[0:i] + a.nick + factoid[i+len(b.IRC.FactoidGrammarWho):]
+		i = strings.Index(factoid, b.IRC.FactoidGrammarWho)
+	}
+
+	// Replace all occurences of <randomwho> with a random nick from the
+	// names map.
+	i = strings.Index(factoid, b.IRC.FactoidGrammarRandomWho)
+	for i != -1 {
+		factoid = factoid[0:i] + b.rndName() + factoid[i+len(b.IRC.FactoidGrammarRandomWho):]
+		i = strings.Index(factoid, b.IRC.FactoidGrammarRandomWho)
+	}
+
+	// Handle replies.
+	if strings.HasPrefix(factoid, b.IRC.FactoidGrammarReply) {
+		b.privmsgf(factoid[len(b.IRC.FactoidGrammarReply)+1:])
+	} else if strings.HasPrefix(factoid, b.IRC.FactoidGrammarAction) {
+		b.actionf(factoid[len(b.IRC.FactoidGrammarAction)+1:])
+	} else {
+		b.privmsgf("%s %s %s", a.msg, b.IRC.FactoidMsgIs, factoid)
+	}
+}
