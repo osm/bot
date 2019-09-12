@@ -20,6 +20,7 @@ func getDatabaseRepository() repository.Source {
 		2: "CREATE TABLE log (id VARCHAR(36) NOT NULL PRIMARY KEY, timestamp TEXT NOT NULL, nick TEXT NOT NULL, message TEXT NOT NULL); CREATE INDEX log_timestamp ON log(timestamp); CREATE INDEX log_nick_timestamp ON log(nick, timestamp);",
 		3: "CREATE TABLE url_check (id VARCHAR(36) NOT NULL PRIMARY KEY, timestamp TEXT NOT NULL, nick TEXT NOT NULL, url TEXT NOT NULL); CREATE INDEX url_check_url ON url_check(url);",
 		4: "CREATE TABLE factoid (id VARCHAR(36) NOT NULL PRIMARY KEY, timestamp TEXT NOT NULL, author TEXT NOT NULL, trigger TEXT NOT NULL, reply TEXT NOT NULL, is_deleted BOOLEAN NOT NULL); CREATE INDEX factoid_trigger ON factoid(trigger);",
+		5: "CREATE TABLE cron (id VARCHAR(36) NOT NULL PRIMARY KEY, expression TEXT NOT NULL, message TEXT NOT NULL, is_deleted BOOLEAN NOT NULL, inserted_at TEXT NOT NULL, updated_at TEXT);",
 	})
 }
 

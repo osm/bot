@@ -31,6 +31,11 @@ type bot struct {
 	// configFile keeps a copy of the configuration file path.
 	configFile string
 
+	// The cron and cron parser objects are kept here, we might want to
+	// extend the cron implementation to run more than just IRC related
+	// things in the future.
+	cron *cron
+
 	DB struct {
 		client *sql.DB
 
@@ -92,6 +97,20 @@ type bot struct {
 		ChattistikCmdYesterday string `json:"chattistikCmdYesterday"`
 		EnableChattistik       bool   `json:"enableChattistik"`
 		EnableLogging          bool   `json:"enableLogging"`
+
+		EnableCron bool `json:"enableCron"`
+
+		CronCmd          string `json:"cronCmd"`
+		CronSubCmdAdd    string `json:"cronSubCmdAdd"`
+		CronSubCmdDelete string `json:"cronSubCmdDelete"`
+		CronSubCmdList   string `json:"cronSubCmdList"`
+		CronSubCmdUpdate string `json:"cronSubCmdUpdate"`
+
+		CronErr       string `json:"cronErr"`
+		CronMsgAdd    string `json:"cronMsgAdd"`
+		CronMsgDelete string `json:"cronMsgDelete"`
+		CronMsgList   string `json:"cronMsgList"`
+		CronMsgUpdate string `json:"cronMsgUpdate"`
 
 		CommandErrExec string            `json:"commandErrExec"`
 		Commands       map[string]string `json:"commands"`
@@ -210,6 +229,11 @@ func (b *bot) start() error {
 	if err := b.initDB(); err != nil {
 		return err
 	}
+
+	// Initialize all the cron related objects and start processing of the
+	// existing cron jobs.
+	b.cron = newCron()
+	b.initCron()
 
 	// The IRC main loop runs in a goroutine So we'll add one to our wait
 	// group and wait until it completes.

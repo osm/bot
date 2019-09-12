@@ -100,6 +100,11 @@ func (b *bot) initIRC() {
 		b.IRC.client.Handle("PRIVMSG", b.weatherHandler)
 	}
 
+	if b.IRC.EnableCron {
+		b.initCronDefaults()
+		b.IRC.client.Handle("PRIVMSG", b.cronHandler)
+	}
+
 	// This goroutine handles the connection to the IRC server. The IRC
 	// library will automatically try to reconnect if the connection dies
 	// for some reason.
