@@ -16,17 +16,20 @@ var factoidRandom = rand.New(rand.NewSource(time.Now().UnixNano()))
 // initFactoidDefaults sets default values for all settings.
 func (b *bot) initFactoidDefaults() {
 	// Commands
-	if b.IRC.FactoidCmdAdd == "" {
-		b.IRC.FactoidCmdAdd = "!add"
+	if b.IRC.FactoidCmd == "" {
+		b.IRC.FactoidCmd = "!factoid"
 	}
-	if b.IRC.FactoidCmdAddDelimiter == "" {
-		b.IRC.FactoidCmdAddDelimiter = " _is_ "
+	if b.IRC.FactoidSubCmdAdd == "" {
+		b.IRC.FactoidSubCmdAdd = "add"
 	}
-	if b.IRC.FactoidCmdDelete == "" {
-		b.IRC.FactoidCmdDelete = "!forget"
+	if b.IRC.FactoidSubCmdAddDelimiter == "" {
+		b.IRC.FactoidSubCmdAddDelimiter = " _is_ "
 	}
-	if b.IRC.FactoidCmdSnoop == "" {
-		b.IRC.FactoidCmdSnoop = "!snoop"
+	if b.IRC.FactoidSubCmdDelete == "" {
+		b.IRC.FactoidSubCmdDelete = "forget"
+	}
+	if b.IRC.FactoidSubCmdSnoop == "" {
+		b.IRC.FactoidSubCmdSnoop = "snoop"
 	}
 
 	// Messages
@@ -71,24 +74,46 @@ func (b *bot) factoidHandler(m *irc.Message) {
 	}
 
 	// Determine which action to take.
-	if a.cmd == b.IRC.FactoidCmdAdd && len(a.args) >= 3 {
-		msg := strings.Replace(a.msg, fmt.Sprintf("%s ", b.IRC.FactoidCmdAdd), "", 1)
-		dpos := strings.Index(msg, b.IRC.FactoidCmdAddDelimiter)
+	subCmd := ""
+	if len(a.args) > 0 {
+		subCmd = a.args[0]
+	}
+
+	// First we'll prioritize commands, if the message isn't a command
+	// we'll check if it's a factoid and if we should send a reply to the
+	// channel.
+	if a.cmd == b.IRC.FactoidCmd && subCmd == b.IRC.FactoidSubCmdAdd && len(a.args) >= 4 {
+		// Remove the factoid cmd and sub cmd from the message.
+		msg := strings.Replace(
+			a.msg,
+			fmt.Sprintf("%s %s ", b.IRC.FactoidCmd, b.IRC.FactoidSubCmdAdd),
+			"",
+			1,
+		)
+
+		// Make sure that the delimiter word is present
+		dpos := strings.Index(msg, b.IRC.FactoidSubCmdAddDelimiter)
 		if dpos == -1 {
 			return
 		}
 
+		// Insert the factoid.
 		b.factoidHandleInsertFact(
 			a.nick,
 			msg[0:dpos],
-			msg[dpos+len(b.IRC.FactoidCmdAddDelimiter):],
+			msg[dpos+len(b.IRC.FactoidSubCmdAddDelimiter):],
 		)
-	} else if a.cmd == b.IRC.FactoidCmdDelete && len(a.args) == 1 {
-		b.factoidHandleDelete(a.args[0])
-	} else if a.cmd == b.IRC.FactoidCmdSnoop && len(a.args) >= 1 {
+	} else if a.cmd == b.IRC.FactoidCmd && subCmd == b.IRC.FactoidSubCmdDelete && len(a.args) == 2 {
+		b.factoidHandleDelete(a.args[1])
+	} else if a.cmd == b.IRC.FactoidCmd && subCmd == b.IRC.FactoidSubCmdSnoop && len(a.args) >= 2 {
 		b.factoidHandleSnoop(
 			a.nick,
-			strings.Replace(a.msg, fmt.Sprintf("%s ", b.IRC.FactoidCmdSnoop), "", 1),
+			strings.Replace(
+				a.msg,
+				fmt.Sprintf("%s %s ", b.IRC.FactoidCmd, b.IRC.FactoidSubCmdSnoop),
+				"",
+				1,
+			),
 		)
 	} else {
 		b.factoidHandleFact(a)

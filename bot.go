@@ -134,10 +134,11 @@ type bot struct {
 		EnableFactoid bool `json:"enableFactoid"`
 		FactoidRate   int  `json:"factoidRate"`
 
-		FactoidCmdAdd          string `json:"factoidCmdAdd"`
-		FactoidCmdAddDelimiter string `json:"factoidCmdAddDelimiter"`
-		FactoidCmdDelete       string `json:"factoidCmdDelete"`
-		FactoidCmdSnoop        string `json:"factoidCmdSnoop"`
+		FactoidCmd                string `json:"factoidCmd"`
+		FactoidSubCmdAdd          string `json:"factoidSubCmdAdd"`
+		FactoidSubCmdAddDelimiter string `json:"factoidSubCmdAddDelimiter"`
+		FactoidSubCmdDelete       string `json:"factoidSubCmdDelete"`
+		FactoidSubCmdSnoop        string `json:"factoidSubCmdSnoop"`
 
 		FactoidGrammarAction    string `json:"factoidGrammarAction"`
 		FactoidGrammarRandomWho string `json:"factoidGrammarRandomWho"`
