@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"math/rand"
 	"strings"
@@ -31,6 +32,9 @@ func (b *bot) initFactoidDefaults() {
 	if b.IRC.FactoidSubCmdSnoop == "" {
 		b.IRC.FactoidSubCmdSnoop = "snoop"
 	}
+	if b.IRC.FactoidSubCmdCount == "" {
+		b.IRC.FactoidSubCmdCount = "count"
+	}
 
 	// Messages
 	if b.IRC.FactoidMsgAdd == "" {
@@ -41,6 +45,9 @@ func (b *bot) initFactoidDefaults() {
 	}
 	if b.IRC.FactoidMsgSnoop == "" {
 		b.IRC.FactoidMsgSnoop = "<id>: <author> taught me that <trigger> is <reply> <timestamp>"
+	}
+	if b.IRC.FactoidMsgCount == "" {
+		b.IRC.FactoidMsgCount = "<trigger> has <count> occurrences"
 	}
 	if b.IRC.FactoidMsgIs == "" {
 		b.IRC.FactoidMsgIs = "is"
@@ -111,6 +118,15 @@ func (b *bot) factoidHandler(m *irc.Message) {
 			strings.Replace(
 				a.msg,
 				fmt.Sprintf("%s %s ", b.IRC.FactoidCmd, b.IRC.FactoidSubCmdSnoop),
+				"",
+				1,
+			),
+		)
+	} else if a.cmd == b.IRC.FactoidCmd && subCmd == b.IRC.FactoidSubCmdCount && len(a.args) >= 2 {
+		b.factoidHandleCount(
+			strings.Replace(
+				a.msg,
+				fmt.Sprintf("%s %s ", b.IRC.FactoidCmd, b.IRC.FactoidSubCmdCount),
 				"",
 				1,
 			),
@@ -234,6 +250,24 @@ func (b *bot) factoidHandleSnoop(nick, trigger string) {
 
 		b.privmsgf(url)
 	}
+}
+
+// factoidHandleCount returns the number of occurrences the given trigger has.
+func (b *bot) factoidHandleCount(trigger string) {
+	// Get the count for the given trigger.
+	var count int
+	err := b.queryRow("SELECT COUNT(*) FROM factoid WHERE trigger = ? AND is_deleted = 0", trigger).Scan(&count)
+	if err != nil && err != sql.ErrNoRows {
+		b.logger.Printf("factoidHandleCount: %w", err)
+		b.privmsgf(b.DB.Err)
+		return
+	}
+
+	// Return it to the channel.
+	b.privmsgph(b.IRC.FactoidMsgCount, map[string]string{
+		"<trigger>": trigger,
+		"<count>":   fmt.Sprintf("%d", count),
+	})
 }
 
 // factoidHandleInsertFact inserts a new factoid into the database.

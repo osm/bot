@@ -139,6 +139,7 @@ type bot struct {
 		FactoidSubCmdAddDelimiter string `json:"factoidSubCmdAddDelimiter"`
 		FactoidSubCmdDelete       string `json:"factoidSubCmdDelete"`
 		FactoidSubCmdSnoop        string `json:"factoidSubCmdSnoop"`
+		FactoidSubCmdCount        string `json:"factoidSubCmdCount"`
 
 		FactoidGrammarAction    string `json:"factoidGrammarAction"`
 		FactoidGrammarRandomWho string `json:"factoidGrammarRandomWho"`
@@ -149,6 +150,7 @@ type bot struct {
 		FactoidMsgDelete string `json:"factoidMsgDelete"`
 		FactoidMsgIs     string `json:"factoidMsgIs"`
 		FactoidMsgSnoop  string `json:"factoidMsgSnoop"`
+		FactoidMsgCount  string `json:"factoidMsgCount"`
 
 		PastebinAPIKey string `json:"pastebinApiKey"`
 	}
