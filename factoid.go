@@ -114,7 +114,6 @@ func (b *bot) factoidHandler(m *irc.Message) {
 		b.factoidHandleDelete(a.args[1])
 	} else if a.cmd == b.IRC.FactoidCmd && subCmd == b.IRC.FactoidSubCmdSnoop && len(a.args) >= 2 {
 		b.factoidHandleSnoop(
-			a.nick,
 			strings.Replace(
 				a.msg,
 				fmt.Sprintf("%s %s ", b.IRC.FactoidCmd, b.IRC.FactoidSubCmdSnoop),
@@ -170,7 +169,7 @@ func (b *bot) factoidHandleDelete(id string) {
 // factoidHandleSnoop finds information about the given factoid. If there are
 // more than five factoids found for the given trigger it'll send the message
 // as a private message instead so we don't flood the channel.
-func (b *bot) factoidHandleSnoop(nick, trigger string) {
+func (b *bot) factoidHandleSnoop(trigger string) {
 	// Get all the relevant factoid information
 	rows, err := b.query("SELECT id, author, timestamp, reply FROM factoid WHERE trigger = ? AND is_deleted = 0", trigger)
 	if err != nil {
