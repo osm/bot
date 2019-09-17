@@ -1,25 +1,39 @@
 package main
 
 import (
-	"fmt"
-	"strings"
+	"strconv"
 	"sync"
 
-	"github.com/osm/irc"
-	"github.com/osm/pastebin"
 	_cron "github.com/robfig/cron/v3"
 )
 
+// newCron returns a new cron structure.
+func newCron() *cron {
+	return &cron{
+		cron:   _cron.New(),
+		jobs:   make(map[string]_cron.EntryID),
+		parser: _cron.NewParser(_cron.Minute | _cron.Hour | _cron.Dom | _cron.Month | _cron.Dow),
+	}
+}
+
 // cron holds the internal data structures needed to run the cron lib.
 type cron struct {
-	cron   *_cron.Cron
-	jobs   map[string]_cron.EntryID
-	mu     sync.Mutex
+	// cron holds a reference to the cron object.
+	cron *_cron.Cron
+
+	// jobs is a map of all the existing jobs, the key is the database id
+	// of the job and the value is the cron entry id.
+	jobs map[string]_cron.EntryID
+
+	// mu is a mutex that will be used to make jobs insert/delete safe.
+	mu sync.Mutex
+
+	// parser holds the reference to the parsing instance.
 	parser _cron.Parser
 }
 
-// add adds a new cron job to the cron lib.
-func (c *cron) add(id, expression string, cmd func()) error {
+// add adds a new entry to the cron runner.
+func (c *cron) add(id, expression, message string, execCount, execLimit int, isLimited bool, bot *bot) error {
 	// Acquire a lock and release it when we return.
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -30,7 +44,8 @@ func (c *cron) add(id, expression string, cmd func()) error {
 	}
 
 	// Add it with the corresponding ID received by the cron lob.
-	entryID, err := c.cron.AddFunc(expression, cmd)
+	cronJob := newCronJob(bot, id, message, execCount, execLimit, isLimited)
+	entryID, err := c.cron.AddJob(expression, cronJob)
 	if err != nil {
 		return err
 	}
@@ -53,309 +68,78 @@ func (c *cron) delete(id string) {
 	}
 }
 
-// newCron returns a new cron structure.
-func newCron() *cron {
-	return &cron{
-		cron:   _cron.New(),
-		jobs:   make(map[string]_cron.EntryID),
-		parser: _cron.NewParser(_cron.Minute | _cron.Hour | _cron.Dom | _cron.Month | _cron.Dow),
+// newCronJob returns a new cron job.
+func newCronJob(bot *bot, id, message string, execCount, execLimit int, isLimited bool) *cronJob {
+	return &cronJob{
+		bot:       bot,
+		id:        id,
+		message:   message,
+		execCount: execCount,
+		execLimit: execLimit,
+		isLimited: isLimited,
 	}
 }
 
-// initCron initializes the cron jobs.
-func (b *bot) initCron() {
-	// Fetch all active cron jobs from the database.
-	rows, err := b.query("SELECT id, expression, message FROM cron WHERE is_deleted = 0")
-	if err != nil {
-		b.logger.Printf("initCron: %w", err)
-		b.privmsgf(b.DB.Err)
-		return
-	}
-	defer rows.Close()
+// cronJob holds the data that each cron job is required to provide.
+type cronJob struct {
+	// bot holds a reference to the bot.
+	bot *bot
 
-	// Iterate over the results and add new cron jobs for each job.
-	for rows.Next() {
-		var id, expression, message string
-		rows.Scan(&id, &expression, &message)
+	// id is the internal id of the bot (the database id).
+	id string
 
-		// Add a new cron job for the given expression, the message
-		// that is defined will be sent back to the channel when the
-		// cron job is triggered.
-		err = b.cron.add(id, expression, b.cronNewFunc(message))
-		if err != nil {
-			b.logger.Printf("initCron: %w", err)
-		}
-	}
+	// message holds the message that will be sent back to the channel
+	// when the cron job is executed.
+	message string
 
-	// Start the cron job runner.
-	b.cron.cron.Start()
+	// isLimited is set to true if there's a limit on how many times the
+	// job can be executed.
+	isLimited bool
+
+	// execCount keeps track of how many times cron job has been executed.
+	execCount int
+
+	// mu will be used to safely increment the exec count.
+	mu sync.Mutex
+
+	// execLimit defines how many times the job can be executed before
+	// it will be stopped, if set to zero it will be keep running forever,
+	// which is the default state.
+	execLimit int
 }
 
-// initCronDefaults sets default values for all settings.
-func (b *bot) initCronDefaults() {
-	// Command and sub commands.
-	if b.IRC.CronCmd == "" {
-		b.IRC.CronCmd = "!cron"
-	}
-	if b.IRC.CronSubCmdAdd == "" {
-		b.IRC.CronSubCmdAdd = "add"
-	}
-	if b.IRC.CronSubCmdDelete == "" {
-		b.IRC.CronSubCmdDelete = "delete"
-	}
-	if b.IRC.CronSubCmdList == "" {
-		b.IRC.CronSubCmdList = "list"
-	}
-	if b.IRC.CronSubCmdUpdate == "" {
-		b.IRC.CronSubCmdUpdate = "update"
-	}
+// Run implements the Job interface.
+func (cj *cronJob) Run() {
+	// Acquire a lock, increment the execution count and release it.
+	cj.mu.Lock()
+	cj.execCount = cj.execCount + 1
+	cj.mu.Unlock()
 
-	// Messages
-	if b.IRC.CronErr == "" {
-		b.IRC.CronErr = "check your syntax"
-	}
-	if b.IRC.CronMsgAdd == "" {
-		b.IRC.CronMsgAdd = "cron job added"
-	}
-	if b.IRC.CronMsgDelete == "" {
-		b.IRC.CronMsgDelete = "cron job deleted"
-	}
-	if b.IRC.CronMsgList == "" {
-		b.IRC.CronMsgList = "<id>: <expression> <message>"
-	}
-	if b.IRC.CronMsgUpdate == "" {
-		b.IRC.CronMsgUpdate = "cron job updated"
-	}
-}
-
-// cronNewFunc returns a new cron func with the given message.
-func (b *bot) cronNewFunc(message string) func() {
-	return func() {
-		b.privmsgf(message)
-	}
-}
-
-// cronHandler handles the IRC integration of the cron job scheduler.
-func (b *bot) cronHandler(m *irc.Message) {
-	if b.shouldIgnore(m) {
-		return
-	}
-
-	// Parse the action
-	a := b.parseAction(m).(*privmsgAction)
-	if !a.validChannel {
-		return
-	}
-
-	// Not a valid cron cmd, return early.
-	if a.cmd != b.IRC.CronCmd || len(a.args) < 1 {
-		return
-	}
-
-	subCmd := a.args[0]
-	if subCmd == b.IRC.CronSubCmdAdd && len(a.args) >= 7 {
-		// The cron expression should be within position 1 to 6 in the
-		// args slice, the rest of the args is the message to send
-		// when the cron expression is evaluated and hit.
-		b.cronAdd(strings.Join(a.args[1:6], " "), strings.Join(a.args[6:], " "))
-	} else if subCmd == b.IRC.CronSubCmdDelete && len(a.args) == 2 {
-		b.cronDelete(a.args[1])
-	} else if subCmd == b.IRC.CronSubCmdList && len(a.args) == 1 {
-		b.cronList()
-	} else if subCmd == b.IRC.CronSubCmdUpdate && len(a.args) >= 8 {
-		// The first argument should be the id of the cron job to
-		// update. The cron expression should be within position 2 to
-		// 7 in the args slice, the rest of the args is the message to
-		// send when the cron expression is evaluated and hit.
-		b.cronUpdate(a.args[1], strings.Join(a.args[2:7], " "), strings.Join(a.args[7:], " "))
-	}
-
-}
-
-// cronAdd adds the given expression and message to the database.
-func (b *bot) cronAdd(expression, message string) {
-	// Make sure that the expression is valid.
-	_, err := b.cron.parser.Parse(expression)
+	// Increment the exec_count in the database as well.
+	stmt, err := cj.bot.prepare("UPDATE cron SET exec_count = ? WHERE id = ?")
 	if err != nil {
-		b.logger.Printf("cronAdd: %w", err)
-		b.privmsgf(b.IRC.CronErr)
-	}
-
-	// Prepare the INSERT statement.
-	stmt, err := b.prepare("INSERT INTO cron (id, expression, message, is_deleted, inserted_at) VALUES(?, ?, ?, 0, ?)")
-	if err != nil {
-		b.logger.Printf("cronAdd: %w", err)
-		b.privmsgf(b.DB.Err)
-		return
-	}
-	defer stmt.Close()
-
-	// Execute it.
-	id := newUUID()
-	_, err = stmt.Exec(id, expression, message, newTimestamp())
-	if err != nil {
-		b.logger.Printf("cronAdd: %w", err)
-		b.privmsgf(b.DB.Err)
-		return
-	}
-
-	// Add the job
-	err = b.cron.add(id, expression, b.cronNewFunc(message))
-	if err != nil {
-		b.logger.Printf("cronAdd: %w", err)
-		b.privmsgf(b.IRC.CronErr)
-	}
-
-	// ... and send a notice that the cron job has been stored.
-	b.privmsgf(b.IRC.CronMsgAdd)
-}
-
-// cronDelete deletes the cron job.
-func (b *bot) cronDelete(id string) {
-	// We expect a valid UUID to be sent.
-	if !isUUID(id) {
-		return
-	}
-
-	stmt, err := b.prepare("UPDATE cron SET is_deleted = 1 WHERE id = ?")
-	if err != nil {
-		b.logger.Printf("cronDelete: %w", err)
-		b.privmsgf(b.DB.Err)
+		cj.bot.logger.Printf("cronJobRun: %w", err)
 		return
 	}
 	defer stmt.Close()
 
 	// Execute the UPDATE statement.
-	_, err = stmt.Exec(id)
+	_, err = stmt.Exec(cj.execCount, cj.id)
 	if err != nil {
-		b.logger.Printf("cronDelete: %w", err)
-		b.privmsgf(b.DB.Err)
+		cj.bot.logger.Printf("cronJobRun: %w", err)
 		return
 	}
 
-	// Delete the job from the runner.
-	b.cron.delete(id)
+	// Send message to the channel and replace the placeholders with the
+	// actual values.
+	cj.bot.privmsgph(cj.message, map[string]string{
+		cj.bot.IRC.CronGrammarMsgIsLimited: strconv.FormatBool(cj.isLimited),
+		cj.bot.IRC.CronGrammarMsgExecCount: strconv.FormatInt(int64(cj.execCount), 10),
+		cj.bot.IRC.CronGrammarMsgExecLimit: strconv.FormatInt(int64(cj.execLimit), 10),
+	})
 
-	// Send a notice that the cron job was removed.
-	b.privmsgf(b.IRC.CronMsgDelete)
-}
-
-// cronList lists all the cron jobs.
-func (b *bot) cronList() {
-	rows, err := b.query("SELECT id, expression, message FROM cron WHERE is_deleted = 0")
-	if err != nil {
-		b.logger.Printf("cronList: %w", err)
-		b.privmsgf(b.DB.Err)
-		return
+	// Execution count has reached the limit, terminate the job.
+	if cj.isLimited && cj.execCount >= cj.execLimit {
+		cj.bot.cron.delete(cj.id)
 	}
-	defer rows.Close()
-
-	type cronjob struct {
-		id         string
-		expression string
-		message    string
-	}
-
-	var cronjobs []cronjob
-	for rows.Next() {
-		var i, e, m string
-		rows.Scan(&i, &e, &m)
-		cronjobs = append(cronjobs, cronjob{i, e, m})
-	}
-
-	// Determine the target of the information.
-	var target string
-	if len(cronjobs) > 5 {
-		target = "pastebin"
-	} else {
-		target = b.IRC.Channel
-	}
-
-	// Send the information back to the given target.
-	var pastebinCode string
-
-	for _, c := range cronjobs {
-		data := map[string]string{
-			"<id>":         c.id,
-			"<expression>": c.expression,
-			"<message>":    c.message,
-		}
-
-		if target == "pastebin" {
-			code := b.IRC.CronMsgList
-			for k, v := range data {
-				code = strings.ReplaceAll(code, k, v)
-			}
-
-			if pastebinCode == "" {
-				pastebinCode = fmt.Sprintf("%s", code)
-			} else {
-				pastebinCode = fmt.Sprintf("%s\n%s", pastebinCode, code)
-			}
-
-		} else {
-			b.privmsgph(b.IRC.CronMsgList, data)
-		}
-	}
-
-	if target == "pastebin" {
-		if b.IRC.PastebinAPIKey == "" {
-			b.logger.Printf("cronList: you need to set a pastebin api key\n")
-			return
-		}
-		pb := pastebin.New(b.IRC.PastebinAPIKey)
-
-		var url string
-		url, err = pb.NewPaste(pastebinCode, "cron job", pastebin.Unlisted, pastebin.TenMinutes)
-		if err != nil {
-			b.logger.Printf("cronList: pastebin err: %v\n", err)
-			return
-		}
-
-		b.privmsgf(url)
-	}
-}
-
-// cronUpdate updates the cron job.
-func (b *bot) cronUpdate(id, expression, message string) {
-	// We expect a valid UUID to be sent.
-	if !isUUID(id) {
-		return
-	}
-
-	// Make sure that the expression is valid.
-	_, err := b.cron.parser.Parse(expression)
-	if err != nil {
-		b.logger.Printf("cronUpdate: %w", err)
-		b.privmsgf(b.IRC.CronErr)
-	}
-
-	// Prepare the update query.
-	stmt, err := b.prepare("UPDATE cron SET expression = ?, message = ?, updated_at = ? WHERE id = ? AND is_deleted = 0")
-	if err != nil {
-		b.logger.Printf("cronUpdate: %w", err)
-		b.privmsgf(b.DB.Err)
-		return
-	}
-	defer stmt.Close()
-
-	// Execute the UPDATE statement.
-	_, err = stmt.Exec(expression, message, newTimestamp(), id)
-	if err != nil {
-		b.logger.Printf("cronUpdate: %w", err)
-		b.privmsgf(b.DB.Err)
-		return
-	}
-
-	// Delete the old job and re-add it as a new.
-	b.cron.delete(id)
-	err = b.cron.add(id, expression, b.cronNewFunc(message))
-	if err != nil {
-		b.logger.Printf("cronAdd: %w", err)
-		b.privmsgf(b.IRC.CronErr)
-	}
-
-	// Send a notice that the cron job was updated.
-	b.privmsgf(b.IRC.CronMsgUpdate)
-
 }

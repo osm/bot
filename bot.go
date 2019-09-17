@@ -100,17 +100,22 @@ type bot struct {
 
 		EnableCron bool `json:"enableCron"`
 
-		CronCmd          string `json:"cronCmd"`
-		CronSubCmdAdd    string `json:"cronSubCmdAdd"`
-		CronSubCmdDelete string `json:"cronSubCmdDelete"`
-		CronSubCmdList   string `json:"cronSubCmdList"`
-		CronSubCmdUpdate string `json:"cronSubCmdUpdate"`
+		CronCmd            string `json:"cronCmd"`
+		CronSubCmdAdd      string `json:"cronSubCmdAdd"`
+		CronSubCmdAddLimit string `json:"cronSubCmdAddLimit"`
+		CronSubCmdDelete   string `json:"cronSubCmdDelete"`
+		CronSubCmdList     string `json:"cronSubCmdList"`
+		CronSubCmdUpdate   string `json:"cronSubCmdUpdate"`
 
 		CronErr       string `json:"cronErr"`
 		CronMsgAdd    string `json:"cronMsgAdd"`
 		CronMsgDelete string `json:"cronMsgDelete"`
 		CronMsgList   string `json:"cronMsgList"`
 		CronMsgUpdate string `json:"cronMsgUpdate"`
+
+		CronGrammarMsgExecCount string `json:"cronGrammarMsgExecCount"`
+		CronGrammarMsgExecLimit string `json:"cronGrammarMsgExecLimit"`
+		CronGrammarMsgIsLimited string `json:"cronGrammarMsgIsLimited"`
 
 		CommandErrExec string            `json:"commandErrExec"`
 		Commands       map[string]string `json:"commands"`
