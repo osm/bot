@@ -195,7 +195,7 @@ func (b *bot) cronAdd(expression, message string) {
 
 	// ... and send a notice that the cron job has been stored.
 	b.privmsgph(b.IRC.CronMsgAdd, map[string]string{
-		"<next_execution>": schedule.Next(time.Now()).Format("2006-01-02 15:04:05"),
+		"<next_execution>": schedule.Next(time.Now()).Format("2006-01-02 15:04"),
 	})
 }
 
