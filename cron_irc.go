@@ -355,7 +355,7 @@ func (b *bot) cronUpdate(id, expression, message string) {
 	b.cron.delete(id)
 	err = b.cron.add(id, expression, message, 0, 0, false, b)
 	if err != nil {
-		b.logger.Printf("cronAdd: %w", err)
+		b.logger.Printf("cronUpdate: %w", err)
 		b.privmsgf(b.IRC.CronErr)
 	}
 
