@@ -64,6 +64,9 @@ func (b *bot) initCronDefaults() {
 	if b.IRC.CronGrammarMsgIsLimited == "" {
 		b.IRC.CronGrammarMsgIsLimited = "<is_limited>"
 	}
+	if b.IRC.CronGrammarMsgRandomWho == "" {
+		b.IRC.CronGrammarMsgRandomWho = "<random_who>"
+	}
 }
 
 // initCron initializes the cron jobs.

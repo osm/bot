@@ -116,6 +116,7 @@ type bot struct {
 		CronGrammarMsgExecCount string `json:"cronGrammarMsgExecCount"`
 		CronGrammarMsgExecLimit string `json:"cronGrammarMsgExecLimit"`
 		CronGrammarMsgIsLimited string `json:"cronGrammarMsgIsLimited"`
+		CronGrammarMsgRandomWho string `json:"cronGrammarMsgRandomWho"`
 
 		CommandErrExec string            `json:"commandErrExec"`
 		Commands       map[string]string `json:"commands"`

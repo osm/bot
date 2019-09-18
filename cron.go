@@ -2,6 +2,7 @@ package main
 
 import (
 	"strconv"
+	"strings"
 	"sync"
 
 	_cron "github.com/robfig/cron/v3"
@@ -130,9 +131,16 @@ func (cj *cronJob) Run() {
 		return
 	}
 
+	message := cj.message
+	i := strings.Index(message, cj.bot.IRC.CronGrammarMsgRandomWho)
+	for i != -1 {
+		message = message[0:i] + cj.bot.rndName() + message[i+len(cj.bot.IRC.CronGrammarMsgRandomWho):]
+		i = strings.Index(message, cj.bot.IRC.CronGrammarMsgRandomWho)
+	}
+
 	// Send message to the channel and replace the placeholders with the
 	// actual values.
-	cj.bot.privmsgph(cj.message, map[string]string{
+	cj.bot.privmsgph(message, map[string]string{
 		cj.bot.IRC.CronGrammarMsgIsLimited: strconv.FormatBool(cj.isLimited),
 		cj.bot.IRC.CronGrammarMsgExecCount: strconv.FormatInt(int64(cj.execCount), 10),
 		cj.bot.IRC.CronGrammarMsgExecLimit: strconv.FormatInt(int64(cj.execLimit), 10),
