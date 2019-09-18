@@ -279,13 +279,20 @@ func (b *bot) cronList() {
 	var pastebinCode string
 
 	for _, c := range cronjobs {
+		var nextExecution string
+		schedule, err := b.cron.parser.Parse(c.expression)
+		if err == nil {
+			nextExecution = schedule.Next(time.Now()).Format("2006-01-02 15:04")
+		}
+
 		data := map[string]string{
-			"<id>":         c.id,
-			"<expression>": c.expression,
-			"<message>":    c.message,
-			"<is_limited>": strconv.FormatBool(c.isLimited),
-			"<exec_count>": strconv.FormatInt(int64(c.execCount), 10),
-			"<exec_limit>": strconv.FormatInt(int64(c.execLimit), 10),
+			"<id>":             c.id,
+			"<expression>":     c.expression,
+			"<message>":        c.message,
+			"<is_limited>":     strconv.FormatBool(c.isLimited),
+			"<exec_count>":     strconv.FormatInt(int64(c.execCount), 10),
+			"<exec_limit>":     strconv.FormatInt(int64(c.execLimit), 10),
+			"<next_execution>": nextExecution,
 		}
 
 		if target == "pastebin" {
