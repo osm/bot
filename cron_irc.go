@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/osm/irc"
 	"github.com/osm/pastebin"
@@ -143,7 +144,7 @@ func (b *bot) cronHandler(m *irc.Message) {
 // cronAdd adds the given expression and message to the database.
 func (b *bot) cronAdd(expression, message string) {
 	// Make sure that the expression is valid.
-	_, err := b.cron.parser.Parse(expression)
+	schedule, err := b.cron.parser.Parse(expression)
 	if err != nil {
 		b.logger.Printf("cronAdd: %w", err)
 		b.privmsgf(b.IRC.CronErr)
@@ -193,7 +194,9 @@ func (b *bot) cronAdd(expression, message string) {
 	}
 
 	// ... and send a notice that the cron job has been stored.
-	b.privmsgf(b.IRC.CronMsgAdd)
+	b.privmsgph(b.IRC.CronMsgAdd, map[string]string{
+		"<next_execution>": schedule.Next(time.Now()).Format("2006-01-02 15:04:05"),
+	})
 }
 
 // cronDelete deletes the cron job.
