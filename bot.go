@@ -47,6 +47,24 @@ type bot struct {
 		Err string `json:"err"`
 	}
 
+	HTTP struct {
+		// Logger for all HTTP related things.
+		logger *log.Logger
+
+		// Toggle the HTTP server on/off.
+		EnableHTTP bool `json:"enableHTTP"`
+
+		// Listen address and port.
+		Address string `json:"address"`
+		Port    string `json:"port"`
+
+		// EchoRoute defines the echo route, which can be used to post
+		// message to the IRC channel.
+		EnableEcho bool   `json:"enableEcho"`
+		EchoRoute  string `json:"echoRoute"`
+		EchoMethod string `json:"echoMethod"`
+	}
+
 	IRC struct {
 		client *irc.Client
 
@@ -218,8 +236,9 @@ func newBotFromConfig(c string) (*bot, error) {
 	// Convert the integer grace period to time.Duration.
 	bot.IRC.gracePeriod = time.Duration(bot.IRC.GracePeriod) * time.Millisecond
 
-	// Initialize the logger.
+	// Initialize the loggers.
 	bot.logger = log.New(os.Stdout, "BOT: ", log.LstdFlags)
+	bot.HTTP.logger = log.New(os.Stdout, "HTTP: ", log.LstdFlags)
 
 	return &bot, nil
 }
@@ -244,10 +263,22 @@ func (b *bot) start() error {
 	b.cron = newCron()
 	b.initCron()
 
-	// The IRC main loop runs in a goroutine So we'll add one to our wait
-	// group and wait until it completes.
-	b.mainWG.Add(1)
+	// Calculate how many wait groups to wait for.
+	wgs := 1
+	if b.HTTP.EnableHTTP {
+		wgs = wgs + 1
+	}
+
+	// The HTTP and IRC main loops runs in a goroutine So we'll add gw to
+	// our wait group and wait until it completes.
+	b.mainWG.Add(wgs)
 	b.initIRC()
+
+	// Start the HTTP server.
+	if b.HTTP.EnableHTTP {
+		b.initHTTP()
+	}
+
 	b.mainWG.Wait()
 
 	return nil
