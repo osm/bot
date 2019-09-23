@@ -110,6 +110,11 @@ type bot struct {
 		LyssnarMsg                   string            `json:"lyssnarMsg"`
 		LyssnarMsgUserIsNotListening string            `json:"lyssnarMsgUserIsNotListening"`
 
+		EnableGiphy bool   `json:"enableGiphy"`
+		GiphyCmd    string `json:"giphyCmd"`
+		GiphyLang   string `json:"giphyLang"`
+		GiphyAPIKey string `json:"giphyAPIKey"`
+
 		ChattistikCmd          string `json:"chattistikCmd"`
 		ChattistikCmdToday     string `json:"chattistikCmdToday"`
 		ChattistikCmdYesterday string `json:"chattistikCmdYesterday"`
@@ -135,6 +140,8 @@ type bot struct {
 		CronGrammarMsgExecLimit string `json:"cronGrammarMsgExecLimit"`
 		CronGrammarMsgIsLimited string `json:"cronGrammarMsgIsLimited"`
 		CronGrammarMsgRandomWho string `json:"cronGrammarMsgRandomWho"`
+		CronGrammarGiphy        string `json:"cronGrammarGiphy"`
+		CronGrammarGiphySearch  string `json:"cronGrammarGiphySearch"`
 
 		CommandErrExec string            `json:"commandErrExec"`
 		Commands       map[string]string `json:"commands"`
@@ -165,10 +172,12 @@ type bot struct {
 		FactoidSubCmdSnoop        string `json:"factoidSubCmdSnoop"`
 		FactoidSubCmdCount        string `json:"factoidSubCmdCount"`
 
-		FactoidGrammarAction    string `json:"factoidGrammarAction"`
-		FactoidGrammarRandomWho string `json:"factoidGrammarRandomWho"`
-		FactoidGrammarReply     string `json:"factoidGrammarReply"`
-		FactoidGrammarWho       string `json:"factoidGrammarWho"`
+		FactoidGrammarAction      string `json:"factoidGrammarAction"`
+		FactoidGrammarRandomWho   string `json:"factoidGrammarRandomWho"`
+		FactoidGrammarReply       string `json:"factoidGrammarReply"`
+		FactoidGrammarWho         string `json:"factoidGrammarWho"`
+		FactoidGrammarGiphy       string `json:"factoidGrammarGiphy"`
+		FactoidGrammarGiphySearch string `json:"factoidGrammarGiphySearch"`
 
 		FactoidMsgAdd    string `json:"factoidMsgAdd"`
 		FactoidMsgDelete string `json:"factoidMsgDelete"`

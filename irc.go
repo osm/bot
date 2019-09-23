@@ -85,6 +85,11 @@ func (b *bot) initIRC() {
 		b.IRC.client.Handle("PRIVMSG", b.lyssnarHandler)
 	}
 
+	if b.IRC.EnableGiphy {
+		b.initGiphyDefaults()
+		b.IRC.client.Handle("PRIVMSG", b.giphyHandler)
+	}
+
 	if b.IRC.EnableChattistik {
 		b.initChattistikDefaults()
 		b.IRC.client.Handle("PRIVMSG", b.chattistikHandler)

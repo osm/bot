@@ -138,6 +138,22 @@ func (cj *cronJob) Run() {
 		i = strings.Index(message, cj.bot.IRC.CronGrammarMsgRandomWho)
 	}
 
+	// Replace all occurences of <giphy> with a gif from giphy.
+	i = strings.Index(message, cj.bot.IRC.CronGrammarGiphy)
+	for i != -1 {
+		if url, _ := cj.bot.giphyRandom(); url != "" {
+			message = message[0:i] + url + message[i+len(cj.bot.IRC.CronGrammarGiphy):]
+			i = strings.Index(message, cj.bot.IRC.CronGrammarGiphy)
+		}
+	}
+
+	// Replace all <giphy search="<query>"> with replies from the giphy API.
+	for _, matches := range cronGrammarGiphySearchRegexp.FindAllStringSubmatch(message, -1) {
+		if url, _ := cj.bot.giphySearch(matches[1]); url != "" {
+			message = strings.Replace(message, matches[0], url, 1)
+		}
+	}
+
 	// Send message to the channel and replace the placeholders with the
 	// actual values.
 	cj.bot.privmsgph(message, map[string]string{

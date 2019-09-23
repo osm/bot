@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"math/rand"
+	"regexp"
 	"strings"
 	"time"
 
@@ -13,6 +14,10 @@ import (
 
 // factoidRandom initializes the random source.
 var factoidRandom = rand.New(rand.NewSource(time.Now().UnixNano()))
+
+// factoidGrammarGiphySearchRegexp contains the regexp that finds
+// <giphy search"xxx"> tags.
+var factoidGrammarGiphySearchRegexp *regexp.Regexp
 
 // initFactoidDefaults sets default values for all settings.
 func (b *bot) initFactoidDefaults() {
@@ -66,6 +71,13 @@ func (b *bot) initFactoidDefaults() {
 	if b.IRC.FactoidGrammarWho == "" {
 		b.IRC.FactoidGrammarWho = "<who>"
 	}
+	if b.IRC.FactoidGrammarGiphy == "" {
+		b.IRC.FactoidGrammarGiphy = "<giphy>"
+	}
+	if b.IRC.FactoidGrammarGiphySearch == "" {
+		b.IRC.FactoidGrammarGiphySearch = `<giphy search="([a-zA-Z0-9 ]+)"[^>]*>"`
+	}
+	factoidGrammarGiphySearchRegexp = regexp.MustCompile(b.IRC.FactoidGrammarGiphySearch)
 }
 
 // factoidHandler is the main entry point for all factoid related commands.
@@ -343,6 +355,22 @@ func (b *bot) factoidHandleFact(a *privmsgAction) {
 	for i != -1 {
 		factoid = factoid[0:i] + b.rndName() + factoid[i+len(b.IRC.FactoidGrammarRandomWho):]
 		i = strings.Index(factoid, b.IRC.FactoidGrammarRandomWho)
+	}
+
+	// Replace all occurences of <giphy> with a gif from giphy.
+	i = strings.Index(factoid, b.IRC.FactoidGrammarGiphy)
+	for i != -1 {
+		if url, _ := b.giphyRandom(); url != "" {
+			factoid = factoid[0:i] + url + factoid[i+len(b.IRC.FactoidGrammarGiphy):]
+			i = strings.Index(factoid, b.IRC.FactoidGrammarGiphy)
+		}
+	}
+
+	// Replace all <giphy search="<query>"> with replies from the giphy API.
+	for _, matches := range factoidGrammarGiphySearchRegexp.FindAllStringSubmatch(factoid, -1) {
+		if url, _ := b.giphySearch(matches[1]); url != "" {
+			factoid = strings.Replace(factoid, matches[0], url, 1)
+		}
 	}
 
 	// Handle replies.
