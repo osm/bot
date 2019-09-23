@@ -143,14 +143,16 @@ func (cj *cronJob) Run() {
 	for i != -1 {
 		if url, _ := cj.bot.giphyRandom(); url != "" {
 			message = message[0:i] + url + message[i+len(cj.bot.IRC.CronGrammarGiphy):]
-			i = strings.Index(message, cj.bot.IRC.CronGrammarGiphy)
 		}
+		i = strings.Index(message, cj.bot.IRC.CronGrammarGiphy)
 	}
 
 	// Replace all <giphy search="<query>"> with replies from the giphy API.
 	for _, matches := range cronGrammarGiphySearchRegexp.FindAllStringSubmatch(message, -1) {
 		if url, _ := cj.bot.giphySearch(matches[1]); url != "" {
 			message = strings.Replace(message, matches[0], url, 1)
+		} else {
+			message = strings.Replace(message, matches[0], "", 1)
 		}
 	}
 

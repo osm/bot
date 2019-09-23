@@ -75,7 +75,7 @@ func (b *bot) initFactoidDefaults() {
 		b.IRC.FactoidGrammarGiphy = "<giphy>"
 	}
 	if b.IRC.FactoidGrammarGiphySearch == "" {
-		b.IRC.FactoidGrammarGiphySearch = `<giphy search="([a-zA-Z0-9 ]+)"[^>]*>"`
+		b.IRC.FactoidGrammarGiphySearch = `<giphy search="([a-zåäöA-ZÅÄÖ0-9 ]+)"[^>]*>"`
 	}
 	factoidGrammarGiphySearchRegexp = regexp.MustCompile(b.IRC.FactoidGrammarGiphySearch)
 }
@@ -362,14 +362,16 @@ func (b *bot) factoidHandleFact(a *privmsgAction) {
 	for i != -1 {
 		if url, _ := b.giphyRandom(); url != "" {
 			factoid = factoid[0:i] + url + factoid[i+len(b.IRC.FactoidGrammarGiphy):]
-			i = strings.Index(factoid, b.IRC.FactoidGrammarGiphy)
 		}
+		i = strings.Index(factoid, b.IRC.FactoidGrammarGiphy)
 	}
 
 	// Replace all <giphy search="<query>"> with replies from the giphy API.
 	for _, matches := range factoidGrammarGiphySearchRegexp.FindAllStringSubmatch(factoid, -1) {
 		if url, _ := b.giphySearch(matches[1]); url != "" {
 			factoid = strings.Replace(factoid, matches[0], url, 1)
+		} else {
+			factoid = strings.Replace(factoid, matches[0], "", 1)
 		}
 	}
 

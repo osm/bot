@@ -76,7 +76,7 @@ func (b *bot) initCronDefaults() {
 		b.IRC.CronGrammarGiphy = "<giphy>"
 	}
 	if b.IRC.CronGrammarGiphySearch == "" {
-		b.IRC.CronGrammarGiphySearch = `<giphy search="([a-zA-Z0-9 ]+)"[^>]*>"`
+		b.IRC.CronGrammarGiphySearch = `<giphy search="([a-zåäöA-ZÅÄÖ0-9 ]+)"[^>]*>"`
 	}
 	cronGrammarGiphySearchRegexp = regexp.MustCompile(b.IRC.CronGrammarGiphySearch)
 }
