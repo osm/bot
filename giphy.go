@@ -13,6 +13,13 @@ import (
 	"github.com/osm/irc"
 )
 
+// Define Giphy errors
+var (
+	GiphyNoAPIKey          = errors.New("You need to set a Giphy API key")
+	GiphyUnknownStatusCode = errors.New("Expected status code 200 from the Giphy API")
+	GiphyNothingFound      = errors.New("Nothing found")
+)
+
 // init seeds the randomizer.
 func init() {
 	rand.Seed(time.Now().Unix())
@@ -25,6 +32,9 @@ func (b *bot) initGiphyDefaults() {
 	}
 	if b.IRC.GiphyLang == "" {
 		b.IRC.GiphyLang = "en"
+	}
+	if b.IRC.GiphyMsgNothingFound == "" {
+		b.IRC.GiphyMsgNothingFound = "nothing found"
 	}
 }
 
@@ -66,15 +76,18 @@ func (b *bot) giphyHandler(m *irc.Message) {
 	}
 
 	var giphy string
+	var err error
 	if len(a.args) == 0 {
-		giphy, _ = b.giphyRandom()
+		giphy, err = b.giphyRandom()
 	} else {
-		giphy, _ = b.giphySearch(a.msg)
-	}
-	if giphy != "" {
-		b.privmsgf(giphy)
+		giphy, err = b.giphySearch(a.msg)
 	}
 
+	if err == GiphyNothingFound {
+		b.privmsgf(b.IRC.GiphyMsgNothingFound)
+	} else if giphy != "" {
+		b.privmsgf(giphy)
+	}
 }
 
 // giphyStripCid strips everything after the ?cid part of the URL.
@@ -86,7 +99,7 @@ func giphyStripCid(url string) string {
 func (b *bot) giphyRandom() (string, error) {
 	if b.IRC.GiphyAPIKey == "" {
 		b.logger.Printf("giphyRandom: you need to set a giphy api key\n")
-		return "", errors.New("you need to set a giphy api key")
+		return "", GiphyNoAPIKey
 	}
 
 	url := fmt.Sprintf(
@@ -118,7 +131,7 @@ func (b *bot) giphyRandom() (string, error) {
 	}
 
 	if g.Meta.Status != 200 {
-		return "", errors.New("Expected status code 200 from api")
+		return "", GiphyUnknownStatusCode
 	}
 
 	return giphyStripCid(g.Data.Images.Original.URL), nil
@@ -128,7 +141,7 @@ func (b *bot) giphyRandom() (string, error) {
 func (b *bot) giphySearch(query string) (string, error) {
 	if b.IRC.GiphyAPIKey == "" {
 		b.logger.Printf("giphySearch: you need to set a giphy api key\n")
-		return "", errors.New("you need to set a giphy api key")
+		return "", GiphyNoAPIKey
 	}
 
 	url := fmt.Sprintf(
@@ -162,11 +175,11 @@ func (b *bot) giphySearch(query string) (string, error) {
 	}
 
 	if g.Meta.Status != 200 {
-		return "", errors.New("Expected status code 200 from api")
+		return "", GiphyUnknownStatusCode
 	}
 
 	if len(g.Data) == 0 {
-		return "", errors.New("No data found")
+		return "", GiphyNothingFound
 	}
 
 	return giphyStripCid(g.Data[rand.Intn(len(g.Data))].Images.Original.URL), nil

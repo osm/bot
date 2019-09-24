@@ -110,10 +110,11 @@ type bot struct {
 		LyssnarMsg                   string            `json:"lyssnarMsg"`
 		LyssnarMsgUserIsNotListening string            `json:"lyssnarMsgUserIsNotListening"`
 
-		EnableGiphy bool   `json:"enableGiphy"`
-		GiphyCmd    string `json:"giphyCmd"`
-		GiphyLang   string `json:"giphyLang"`
-		GiphyAPIKey string `json:"giphyAPIKey"`
+		EnableGiphy          bool   `json:"enableGiphy"`
+		GiphyCmd             string `json:"giphyCmd"`
+		GiphyLang            string `json:"giphyLang"`
+		GiphyAPIKey          string `json:"giphyAPIKey"`
+		GiphyMsgNothingFound string `json:"giphyMsgNothingFound"`
 
 		ChattistikCmd          string `json:"chattistikCmd"`
 		ChattistikCmdToday     string `json:"chattistikCmdToday"`
