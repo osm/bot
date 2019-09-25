@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -160,7 +161,7 @@ type bot struct {
 		operators map[string]bool
 		Operators []string `json:"operators"`
 
-		ignore map[string]bool
+		ignore []*regexp.Regexp
 		Ignore []string `json:"ignore"`
 
 		EnableFactoid bool `json:"enableFactoid"`
@@ -230,11 +231,8 @@ func newBotFromConfig(c string) (*bot, error) {
 	// Convert the Ignore array into a map to make lookups more
 	// efficient.
 	if len(bot.IRC.Ignore) > 0 {
-		bot.IRC.ignore = make(map[string]bool)
-		for _, o := range bot.IRC.Ignore {
-			if _, ok := bot.IRC.ignore[o]; !ok {
-				bot.IRC.ignore[o] = true
-			}
+		for _, r := range bot.IRC.Ignore {
+			bot.IRC.ignore = append(bot.IRC.ignore, regexp.MustCompile(r))
 		}
 	}
 

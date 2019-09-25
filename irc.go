@@ -190,9 +190,10 @@ func (b *bot) rndName() string {
 // or not.
 func (b *bot) shouldIgnore(m *irc.Message) bool {
 	h := parseHost(m)
-
-	if _, ok := b.IRC.ignore[h]; ok {
-		return true
+	for _, r := range b.IRC.ignore {
+		if r.Match([]byte(h)) {
+			return true
+		}
 	}
 
 	return false
