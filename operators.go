@@ -17,7 +17,10 @@ func (b *bot) operatorsHandler(m *irc.Message) {
 		return
 	}
 
-	if _, ok := b.IRC.operators[a.host]; ok {
-		b.IRC.client.Sendf("MODE %s +o %s", b.IRC.Channel, a.nick)
+	for _, o := range b.IRC.operators {
+		if o.Match([]byte(a.host)) {
+			b.IRC.client.Sendf("MODE %s +o %s", b.IRC.Channel, a.nick)
+			return
+		}
 	}
 }

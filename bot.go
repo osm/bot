@@ -158,7 +158,7 @@ type bot struct {
 		EnableURLCheck bool   `json:"enableURLCheck"`
 		URLCheckMsg    string `json:"urlCheckMsg"`
 
-		operators map[string]bool
+		operators []*regexp.Regexp
 		Operators []string `json:"operators"`
 
 		ignore []*regexp.Regexp
@@ -220,11 +220,8 @@ func newBotFromConfig(c string) (*bot, error) {
 	// Convert the Operators array into a map so lookups will be
 	// efficient.
 	if len(bot.IRC.Operators) > 0 {
-		bot.IRC.operators = make(map[string]bool)
 		for _, o := range bot.IRC.Operators {
-			if _, ok := bot.IRC.operators[o]; !ok {
-				bot.IRC.operators[o] = true
-			}
+			bot.IRC.operators = append(bot.IRC.operators, regexp.MustCompile(o))
 		}
 	}
 
