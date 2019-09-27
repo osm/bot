@@ -156,6 +156,15 @@ func (cj *cronJob) Run() {
 		}
 	}
 
+	// Replace all <tenor search="<query>"> with replies from the Tenor API.
+	for _, matches := range cronGrammarTenorSearchRegexp.FindAllStringSubmatch(message, -1) {
+		if url, _ := cj.bot.tenorSearch(matches[1]); url != "" {
+			message = strings.Replace(message, matches[0], url, 1)
+		} else {
+			message = strings.Replace(message, matches[0], "", 1)
+		}
+	}
+
 	// Send message to the channel and replace the placeholders with the
 	// actual values.
 	cj.bot.privmsgph(message, map[string]string{

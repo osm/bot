@@ -19,6 +19,10 @@ var cronAddLimitRegexp *regexp.Regexp
 // <giphy search"xxx"> tags.
 var cronGrammarGiphySearchRegexp *regexp.Regexp
 
+// cronGrammarTenorSearchRegexp contains the regexp that finds
+// <tenor search"xxx"> tags.
+var cronGrammarTenorSearchRegexp *regexp.Regexp
+
 // initCronDefaults sets default values for all settings.
 func (b *bot) initCronDefaults() {
 	// Command and sub commands.
@@ -79,6 +83,10 @@ func (b *bot) initCronDefaults() {
 		b.IRC.CronGrammarGiphySearch = `<giphy search="([a-zåäöA-ZÅÄÖ0-9 ]+)"[^>]*>"`
 	}
 	cronGrammarGiphySearchRegexp = regexp.MustCompile(b.IRC.CronGrammarGiphySearch)
+	if b.IRC.CronGrammarTenorSearch == "" {
+		b.IRC.CronGrammarTenorSearch = `<tenor search="([a-zåäöüA-ZÅÄÖÜ0-9 ]+)"[^>]*>"`
+	}
+	cronGrammarTenorSearchRegexp = regexp.MustCompile(b.IRC.CronGrammarTenorSearch)
 }
 
 // initCron initializes the cron jobs.

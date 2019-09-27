@@ -90,6 +90,11 @@ func (b *bot) initIRC() {
 		b.IRC.client.Handle("PRIVMSG", b.giphyHandler)
 	}
 
+	if b.IRC.EnableTenor {
+		b.initTenorDefaults()
+		b.IRC.client.Handle("PRIVMSG", b.tenorHandler)
+	}
+
 	if b.IRC.EnableChattistik {
 		b.initChattistikDefaults()
 		b.IRC.client.Handle("PRIVMSG", b.chattistikHandler)

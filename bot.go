@@ -117,6 +117,12 @@ type bot struct {
 		GiphyAPIKey          string `json:"giphyAPIKey"`
 		GiphyMsgNothingFound string `json:"giphyMsgNothingFound"`
 
+		EnableTenor          bool   `json:"enableTenor"`
+		TenorCmd             string `json:"tenorCmd"`
+		TenorLang            string `json:"tenorLang"`
+		TenorAPIKey          string `json:"tenorAPIKey"`
+		TenorMsgNothingFound string `json:"tenorMsgNothingFound"`
+
 		ChattistikCmd          string `json:"chattistikCmd"`
 		ChattistikCmdToday     string `json:"chattistikCmdToday"`
 		ChattistikCmdYesterday string `json:"chattistikCmdYesterday"`
@@ -144,6 +150,7 @@ type bot struct {
 		CronGrammarMsgRandomWho string `json:"cronGrammarMsgRandomWho"`
 		CronGrammarGiphy        string `json:"cronGrammarGiphy"`
 		CronGrammarGiphySearch  string `json:"cronGrammarGiphySearch"`
+		CronGrammarTenorSearch  string `json:"cronGrammarTenorSearch"`
 
 		CommandErrExec string            `json:"commandErrExec"`
 		Commands       map[string]string `json:"commands"`
@@ -180,6 +187,7 @@ type bot struct {
 		FactoidGrammarWho         string `json:"factoidGrammarWho"`
 		FactoidGrammarGiphy       string `json:"factoidGrammarGiphy"`
 		FactoidGrammarGiphySearch string `json:"factoidGrammarGiphySearch"`
+		FactoidGrammarTenorSearch string `json:"factoidGrammarTenorSearch"`
 
 		FactoidMsgAdd    string `json:"factoidMsgAdd"`
 		FactoidMsgDelete string `json:"factoidMsgDelete"`

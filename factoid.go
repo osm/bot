@@ -19,6 +19,10 @@ var factoidRandom = rand.New(rand.NewSource(time.Now().UnixNano()))
 // <giphy search"xxx"> tags.
 var factoidGrammarGiphySearchRegexp *regexp.Regexp
 
+// factoidGrammarTenorSearchRegexp contains the regexp that finds
+// <tenor search"xxx"> tags.
+var factoidGrammarTenorSearchRegexp *regexp.Regexp
+
 // initFactoidDefaults sets default values for all settings.
 func (b *bot) initFactoidDefaults() {
 	// Commands
@@ -78,6 +82,10 @@ func (b *bot) initFactoidDefaults() {
 		b.IRC.FactoidGrammarGiphySearch = `<giphy search="([a-zåäöA-ZÅÄÖ0-9 ]+)"[^>]*>"`
 	}
 	factoidGrammarGiphySearchRegexp = regexp.MustCompile(b.IRC.FactoidGrammarGiphySearch)
+	if b.IRC.FactoidGrammarTenorSearch == "" {
+		b.IRC.FactoidGrammarTenorSearch = `<giphy search="([a-zåäöüA-ZÅÄÖÜ0-9 ]+)"[^>]*>"`
+	}
+	factoidGrammarTenorSearchRegexp = regexp.MustCompile(b.IRC.FactoidGrammarTenorSearch)
 }
 
 // factoidHandler is the main entry point for all factoid related commands.
@@ -369,6 +377,15 @@ func (b *bot) factoidHandleFact(a *privmsgAction) {
 	// Replace all <giphy search="<query>"> with replies from the giphy API.
 	for _, matches := range factoidGrammarGiphySearchRegexp.FindAllStringSubmatch(factoid, -1) {
 		if url, _ := b.giphySearch(matches[1]); url != "" {
+			factoid = strings.Replace(factoid, matches[0], url, 1)
+		} else {
+			factoid = strings.Replace(factoid, matches[0], "", 1)
+		}
+	}
+
+	// Replace all <tenor search="<query>"> with replies from the Tenor API.
+	for _, matches := range factoidGrammarTenorSearchRegexp.FindAllStringSubmatch(factoid, -1) {
+		if url, _ := b.tenorSearch(matches[1]); url != "" {
 			factoid = strings.Replace(factoid, matches[0], url, 1)
 		} else {
 			factoid = strings.Replace(factoid, matches[0], "", 1)
