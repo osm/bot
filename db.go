@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/osm/migrator"
@@ -31,12 +32,17 @@ func getDatabaseRepository() repository.Source {
 // migrations to make sure that the schema is migrated to the latest version
 // possible. An error will be returned if there's any.
 func (b *bot) initDB() error {
-	if b.DB.Path == "" {
+	dbPath := b.DB.Path
+	if p := os.Getenv("BOT_DB_PATH"); p != "" {
+		dbPath = p
+	}
+
+	if dbPath == "" {
 		return fmt.Errorf("database path can't be empty")
 	}
 
 	var err error
-	if b.DB.client, err = sql.Open("sqlite3", b.DB.Path); err != nil {
+	if b.DB.client, err = sql.Open("sqlite3", dbPath); err != nil {
 		return fmt.Errorf("can't initialize database connection: %v", err)
 	}
 
