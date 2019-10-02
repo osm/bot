@@ -37,11 +37,20 @@ func (b *bot) commandHandler(m *irc.Message) {
 		return
 	}
 
+	parts := strings.Split(bin, " ")
+	var args []string
+
 	if len(a.args) > 0 && !commandArgumentRegexp.MatchString(strings.Join(a.args, " ")) {
 		return
 	}
 
-	cmd := exec.Command(bin, a.args...)
+	if len(parts) > 1 {
+		args = parts[1:]
+	} else if len(a.args) > 0 {
+		args = a.args
+	}
+
+	cmd := exec.Command(parts[0], args...)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		b.logger.Printf("commandHandler: %v", err)
