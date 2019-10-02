@@ -154,7 +154,9 @@ type bot struct {
 
 		CommandErrExec string            `json:"commandErrExec"`
 		Commands       map[string]string `json:"commands"`
+		CommandsStatic map[string]string `json:"commandsStatic"`
 		EnableCommands bool              `json:"enableCommands"`
+		commands       map[string]command
 
 		EnableWeather bool   `json:"enableWeather"`
 		WeatherAPIKey string `json:"weatherAPIKey"`
@@ -238,6 +240,20 @@ func newBotFromConfig(c string) (*bot, error) {
 	if len(bot.IRC.Ignore) > 0 {
 		for _, r := range bot.IRC.Ignore {
 			bot.IRC.ignore = append(bot.IRC.ignore, regexp.MustCompile(r))
+		}
+	}
+
+	// Convert Commands and CommandsStatic to the internal command
+	// structure.
+	bot.IRC.commands = make(map[string]command)
+	if len(bot.IRC.Commands) > 0 {
+		for k, v := range bot.IRC.Commands {
+			bot.IRC.commands[k] = parseCommand(true, v)
+		}
+	}
+	if len(bot.IRC.CommandsStatic) > 0 {
+		for k, v := range bot.IRC.CommandsStatic {
+			bot.IRC.commands[k] = parseCommand(false, v)
 		}
 	}
 

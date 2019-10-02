@@ -8,6 +8,29 @@ import (
 	"github.com/osm/irc"
 )
 
+// command holds the information needed to process a command.
+type command struct {
+	acceptArgs bool
+	bin        string
+	args       []string
+}
+
+// parseCommand returns a command based om the given input data.
+func parseCommand(acceptArgs bool, data string) command {
+	parts := strings.Split(data, " ")
+
+	var args []string
+	if len(parts) > 1 {
+		args = parts[1:]
+	}
+
+	return command{
+		acceptArgs: acceptArgs,
+		bin:        parts[0],
+		args:       args,
+	}
+}
+
 // initFactoidDefaults sets default values for all settings.
 func (b *bot) initCommandDefaults() {
 	if b.IRC.CommandErrExec == "" {
@@ -32,25 +55,21 @@ func (b *bot) commandHandler(m *irc.Message) {
 
 	a := b.parseAction(m).(*privmsgAction)
 
-	bin, ok := b.IRC.Commands[a.cmd]
+	c, ok := b.IRC.commands[a.cmd]
 	if !ok {
 		return
 	}
 
-	parts := strings.Split(bin, " ")
-	var args []string
-
-	if len(a.args) > 0 && !commandArgumentRegexp.MatchString(strings.Join(a.args, " ")) {
+	if c.acceptArgs && len(a.args) > 0 && !commandArgumentRegexp.MatchString(strings.Join(a.args, " ")) {
 		return
 	}
 
-	if len(parts) > 1 {
-		args = parts[1:]
-	} else if len(a.args) > 0 {
-		args = a.args
+	args := c.args
+	if c.acceptArgs && len(a.args) > 0 {
+		args = append(args, a.args...)
 	}
 
-	cmd := exec.Command(parts[0], args...)
+	cmd := exec.Command(c.bin, args...)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		b.logger.Printf("commandHandler: %v", err)
