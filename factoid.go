@@ -396,7 +396,7 @@ func (b *bot) factoidHandleFact(a *privmsgAction) {
 	if strings.HasPrefix(factoid, b.IRC.FactoidGrammarReply) {
 		b.privmsg(factoid[len(b.IRC.FactoidGrammarReply)+1:])
 	} else if strings.HasPrefix(factoid, b.IRC.FactoidGrammarAction) {
-		b.actionf(factoid[len(b.IRC.FactoidGrammarAction)+1:])
+		b.action(factoid[len(b.IRC.FactoidGrammarAction)+1:])
 	} else {
 		b.privmsg(fmt.Sprintf("%s %s %s", a.msg, b.IRC.FactoidMsgIs, factoid))
 	}

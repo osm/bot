@@ -169,11 +169,11 @@ func (b *bot) privmsgph(msg string, phs map[string]string) {
 	b.IRC.client.Privmsg(b.IRC.Channel, msg)
 }
 
-// actionf sends the given formatted message back to the channel set from the
+// action sends the given message back to the channel set from the
 // configuration as an ACTION message.
-func (b *bot) actionf(format string, args ...interface{}) {
+func (b *bot) action(msg string) {
 	b.preventSpam()
-	b.IRC.client.Privmsg(b.IRC.Channel, "\u0001ACTION "+fmt.Sprintf(format, args...)+"\u0001")
+	b.IRC.client.Privmsg(b.IRC.Channel, "\u0001ACTION "+msg+"\u0001")
 }
 
 // rndName returns a random name from the names map.
