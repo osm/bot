@@ -66,6 +66,10 @@ func (b *bot) initIRC() {
 	b.IRC.client.Handle("PART", b.handleNamesRemove)
 	b.IRC.client.Handle("QUIT", b.handleNamesRemove)
 
+	if b.IRC.RejoinOnKick {
+		b.IRC.client.Handle("KICK", b.kickHandler)
+	}
+
 	if b.IRC.EnableCommands {
 		b.initCommandDefaults()
 		b.IRC.client.Handle("PRIVMSG", b.commandHandler)

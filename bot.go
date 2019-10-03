@@ -88,6 +88,9 @@ type bot struct {
 		// application is started.
 		gracePeriod time.Duration
 
+		// Rejoin the channel if the bot is kicked.
+		RejoinOnKick bool `json:"rejoinOnKick"`
+
 		// Connection related settings.
 		Address  string `json:"address"`
 		Channel  string `json:"channel"`
