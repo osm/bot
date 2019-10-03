@@ -73,7 +73,7 @@ func (b *bot) commandHandler(m *irc.Message) {
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		b.logger.Printf("commandHandler: %v", err)
-		b.privmsgf(b.IRC.CommandErrExec)
+		b.privmsg(b.IRC.CommandErrExec)
 		return
 	}
 
@@ -86,6 +86,6 @@ func (b *bot) commandHandler(m *irc.Message) {
 			continue
 		}
 
-		b.privmsgf(o)
+		b.privmsg(o)
 	}
 }

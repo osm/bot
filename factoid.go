@@ -169,7 +169,7 @@ func (b *bot) factoidHandleDelete(id string) {
 	stmt, err := b.prepare("UPDATE factoid SET is_deleted = 1 WHERE id = ?")
 	if err != nil {
 		b.logger.Printf("factoidHandleDelete: %v", err)
-		b.privmsgf(b.DB.Err)
+		b.privmsg(b.DB.Err)
 		return
 	}
 	defer stmt.Close()
@@ -178,12 +178,12 @@ func (b *bot) factoidHandleDelete(id string) {
 	_, err = stmt.Exec(id)
 	if err != nil {
 		b.logger.Printf("factoidHandleDelete: %v", err)
-		b.privmsgf(b.DB.Err)
+		b.privmsg(b.DB.Err)
 		return
 	}
 
 	// Send a notice that the factoid was removed.
-	b.privmsgf(b.IRC.FactoidMsgDelete)
+	b.privmsg(b.IRC.FactoidMsgDelete)
 }
 
 // factoidHandleSnoop finds information about the given factoid. If there are
@@ -194,7 +194,7 @@ func (b *bot) factoidHandleSnoop(trigger string) {
 	rows, err := b.query("SELECT id, author, timestamp, reply FROM factoid WHERE trigger = ? AND is_deleted = 0", trigger)
 	if err != nil {
 		b.logger.Printf("factoidHandleSnoop: %v", err)
-		b.privmsgf(b.DB.Err)
+		b.privmsg(b.DB.Err)
 		return
 	}
 	defer rows.Close()
@@ -267,7 +267,7 @@ func (b *bot) factoidHandleSnoop(trigger string) {
 			return
 		}
 
-		b.privmsgf(url)
+		b.privmsg(url)
 	}
 }
 
@@ -278,7 +278,7 @@ func (b *bot) factoidHandleCount(trigger string) {
 	err := b.queryRow("SELECT COUNT(*) FROM factoid WHERE trigger = ? AND is_deleted = 0", trigger).Scan(&count)
 	if err != nil && err != sql.ErrNoRows {
 		b.logger.Printf("factoidHandleCount: %w", err)
-		b.privmsgf(b.DB.Err)
+		b.privmsg(b.DB.Err)
 		return
 	}
 
@@ -295,7 +295,7 @@ func (b *bot) factoidHandleInsertFact(author, trigger, reply string) {
 	stmt, err := b.prepare("INSERT INTO factoid (id, timestamp, author, trigger, reply, is_deleted) VALUES(?, ?, ?, ?, ?, 0)")
 	if err != nil {
 		b.logger.Printf("factoidHandleInsertFact: %v", err)
-		b.privmsgf(b.DB.Err)
+		b.privmsg(b.DB.Err)
 		return
 	}
 	defer stmt.Close()
@@ -304,12 +304,12 @@ func (b *bot) factoidHandleInsertFact(author, trigger, reply string) {
 	_, err = stmt.Exec(newUUID(), newTimestamp(), author, trigger, reply)
 	if err != nil {
 		b.logger.Printf("factoidHandleInsertFact: %v", err)
-		b.privmsgf(b.DB.Err)
+		b.privmsg(b.DB.Err)
 		return
 	}
 
 	// ... and send a notice that the fact has been stored.
-	b.privmsgf(b.IRC.FactoidMsgAdd)
+	b.privmsg(b.IRC.FactoidMsgAdd)
 }
 
 // factoidHandleFact checks whether the message in the action is a known
@@ -320,7 +320,7 @@ func (b *bot) factoidHandleFact(a *privmsgAction) {
 	rows, err := b.query("SELECT reply FROM factoid WHERE trigger = ? AND is_deleted = 0", a.msg)
 	if err != nil {
 		b.logger.Printf("factoidHandleFact: %v", err)
-		b.privmsgf(b.DB.Err)
+		b.privmsg(b.DB.Err)
 		return
 	}
 	defer rows.Close()
@@ -394,10 +394,10 @@ func (b *bot) factoidHandleFact(a *privmsgAction) {
 
 	// Handle replies.
 	if strings.HasPrefix(factoid, b.IRC.FactoidGrammarReply) {
-		b.privmsgf(factoid[len(b.IRC.FactoidGrammarReply)+1:])
+		b.privmsg(factoid[len(b.IRC.FactoidGrammarReply)+1:])
 	} else if strings.HasPrefix(factoid, b.IRC.FactoidGrammarAction) {
 		b.actionf(factoid[len(b.IRC.FactoidGrammarAction)+1:])
 	} else {
-		b.privmsgf("%s %s %s", a.msg, b.IRC.FactoidMsgIs, factoid)
+		b.privmsg(fmt.Sprintf("%s %s %s", a.msg, b.IRC.FactoidMsgIs, factoid))
 	}
 }

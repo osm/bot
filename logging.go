@@ -18,7 +18,7 @@ func (b *bot) loggingHandler(m *irc.Message) {
 	stmt, err := b.prepare("INSERT INTO log (id, timestamp, nick, message) VALUES(?, ?, ?, ?)")
 	if err != nil {
 		b.logger.Printf("loggingHandler: %v", err)
-		b.privmsgf(b.DB.Err)
+		b.privmsg(b.DB.Err)
 		return
 	}
 	defer stmt.Close()
@@ -26,7 +26,7 @@ func (b *bot) loggingHandler(m *irc.Message) {
 	_, err = stmt.Exec(newUUID(), newTimestamp(), a.nick, a.msg)
 	if err != nil {
 		b.logger.Printf("loggingHandler: %v", err)
-		b.privmsgf(b.DB.Err)
+		b.privmsg(b.DB.Err)
 		return
 	}
 }

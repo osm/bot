@@ -48,14 +48,14 @@ func (b *bot) lyssnarHandler(m *irc.Message) {
 	nick := a.args[0]
 	spotifyUsername, ok := b.IRC.Lyssnare[nick]
 	if !ok {
-		b.privmsgf(b.IRC.LyssnarErrUserNotConfigured)
+		b.privmsg(b.IRC.LyssnarErrUserNotConfigured)
 		return
 	}
 
 	res, err := http.Get(fmt.Sprintf("http://lyssnar.com/v1/user/%s/currently-playing-short", spotifyUsername))
 	if err != nil {
 		b.logger.Printf("lyssnar: %v", err)
-		b.privmsgf(b.IRC.LyssnarErr)
+		b.privmsg(b.IRC.LyssnarErr)
 		return
 	}
 
@@ -63,7 +63,7 @@ func (b *bot) lyssnarHandler(m *irc.Message) {
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		b.logger.Printf("lyssnar: %v", err)
-		b.privmsgf(b.IRC.LyssnarErr)
+		b.privmsg(b.IRC.LyssnarErr)
 		return
 	}
 
@@ -73,12 +73,12 @@ func (b *bot) lyssnarHandler(m *irc.Message) {
 	err = json.Unmarshal(data, &obj)
 	if err != nil {
 		b.logger.Printf("lyssnar: %v", err)
-		b.privmsgf(b.IRC.LyssnarErr)
+		b.privmsg(b.IRC.LyssnarErr)
 		return
 	}
 
 	if obj.Playing == "" {
-		b.privmsgf(b.IRC.LyssnarMsgUserIsNotListening)
+		b.privmsg(b.IRC.LyssnarMsgUserIsNotListening)
 		return
 	}
 

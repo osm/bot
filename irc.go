@@ -150,11 +150,11 @@ func (b *bot) preventSpam() {
 	b.IRC.lastSentMessage = time.Now()
 }
 
-// privmsgf sends the given formatted message back to the channel set from the
+// privmsg sends the given message back to the channel set from the
 // configuration.
-func (b *bot) privmsgf(format string, args ...interface{}) {
+func (b *bot) privmsg(msg string) {
 	b.preventSpam()
-	b.IRC.client.Privmsg(b.IRC.Channel, fmt.Sprintf(format, args...))
+	b.IRC.client.Privmsg(b.IRC.Channel, msg)
 }
 
 // privmsgph replaces the keys of the phs map with the values and sends the

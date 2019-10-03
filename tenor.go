@@ -59,9 +59,9 @@ func (b *bot) tenorHandler(m *irc.Message) {
 
 	url, err := b.tenorSearch(a.msg)
 	if err == TenorNothingFound {
-		b.privmsgf(b.IRC.TenorMsgNothingFound)
+		b.privmsg(b.IRC.TenorMsgNothingFound)
 	} else if url != "" {
-		b.privmsgf(url)
+		b.privmsg(url)
 	}
 }
 

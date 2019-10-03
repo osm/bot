@@ -53,7 +53,7 @@ func (b *bot) weatherHandler(m *irc.Message) {
 	res, err := http.Get(fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?appid=%s&q=%s", b.IRC.WeatherAPIKey, a.args[0]))
 	if err != nil {
 		b.logger.Printf("weather: %v", err)
-		b.privmsgf(b.IRC.WeatherErr)
+		b.privmsg(b.IRC.WeatherErr)
 		return
 	}
 
@@ -61,7 +61,7 @@ func (b *bot) weatherHandler(m *irc.Message) {
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		b.logger.Printf("weather: %v", err)
-		b.privmsgf(b.IRC.WeatherErr)
+		b.privmsg(b.IRC.WeatherErr)
 		return
 	}
 
@@ -80,7 +80,7 @@ func (b *bot) weatherHandler(m *irc.Message) {
 	err = json.Unmarshal(data, &w)
 	if err != nil {
 		b.logger.Printf("weather: %v", err)
-		b.privmsgf(b.IRC.WeatherErr)
+		b.privmsg(b.IRC.WeatherErr)
 		return
 	}
 
@@ -88,7 +88,7 @@ func (b *bot) weatherHandler(m *irc.Message) {
 	// has been trying to be funny and sent an invalid city name. We
 	// don't log these errors.
 	if string(w.Cod) != "200" {
-		b.privmsgf(b.IRC.WeatherErr)
+		b.privmsg(b.IRC.WeatherErr)
 		return
 	}
 

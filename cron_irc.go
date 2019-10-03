@@ -95,7 +95,7 @@ func (b *bot) initCron() {
 	rows, err := b.query("SELECT id, expression, message, is_limited, exec_count, exec_limit FROM cron WHERE is_deleted = 0")
 	if err != nil {
 		b.logger.Printf("initCron: %w", err)
-		b.privmsgf(b.DB.Err)
+		b.privmsg(b.DB.Err)
 		return
 	}
 	defer rows.Close()
@@ -166,7 +166,7 @@ func (b *bot) cronAdd(expression, message string) {
 	schedule, err := b.cron.parser.Parse(expression)
 	if err != nil {
 		b.logger.Printf("cronAdd: %w", err)
-		b.privmsgf(b.IRC.CronErr)
+		b.privmsg(b.IRC.CronErr)
 	}
 
 	// Determine whether the message also holds an execution limit or not,
@@ -191,7 +191,7 @@ func (b *bot) cronAdd(expression, message string) {
 	stmt, err := b.prepare("INSERT INTO cron (id, expression, message, is_limited, exec_limit, is_deleted, inserted_at) VALUES(?, ?, ?, ?, ?, 0, ?)")
 	if err != nil {
 		b.logger.Printf("cronAdd: %w", err)
-		b.privmsgf(b.DB.Err)
+		b.privmsg(b.DB.Err)
 		return
 	}
 	defer stmt.Close()
@@ -201,7 +201,7 @@ func (b *bot) cronAdd(expression, message string) {
 	_, err = stmt.Exec(id, expression, message, isLimited, execLimit, newTimestamp())
 	if err != nil {
 		b.logger.Printf("cronAdd: %w", err)
-		b.privmsgf(b.DB.Err)
+		b.privmsg(b.DB.Err)
 		return
 	}
 
@@ -209,7 +209,7 @@ func (b *bot) cronAdd(expression, message string) {
 	err = b.cron.add(id, expression, message, 0, execLimit, isLimited, b)
 	if err != nil {
 		b.logger.Printf("cronAdd: %w", err)
-		b.privmsgf(b.IRC.CronErr)
+		b.privmsg(b.IRC.CronErr)
 	}
 
 	// ... and send a notice that the cron job has been stored.
@@ -228,7 +228,7 @@ func (b *bot) cronDelete(id string) {
 	stmt, err := b.prepare("UPDATE cron SET is_deleted = 1 WHERE id = ?")
 	if err != nil {
 		b.logger.Printf("cronDelete: %w", err)
-		b.privmsgf(b.DB.Err)
+		b.privmsg(b.DB.Err)
 		return
 	}
 	defer stmt.Close()
@@ -237,7 +237,7 @@ func (b *bot) cronDelete(id string) {
 	_, err = stmt.Exec(id)
 	if err != nil {
 		b.logger.Printf("cronDelete: %w", err)
-		b.privmsgf(b.DB.Err)
+		b.privmsg(b.DB.Err)
 		return
 	}
 
@@ -245,7 +245,7 @@ func (b *bot) cronDelete(id string) {
 	b.cron.delete(id)
 
 	// Send a notice that the cron job was removed.
-	b.privmsgf(b.IRC.CronMsgDelete)
+	b.privmsg(b.IRC.CronMsgDelete)
 }
 
 // cronList lists all the cron jobs.
@@ -253,7 +253,7 @@ func (b *bot) cronList() {
 	rows, err := b.query("SELECT id, expression, message, is_limited, exec_count, exec_limit FROM cron WHERE is_deleted = 0")
 	if err != nil {
 		b.logger.Printf("cronList: %w", err)
-		b.privmsgf(b.DB.Err)
+		b.privmsg(b.DB.Err)
 		return
 	}
 	defer rows.Close()
@@ -345,7 +345,7 @@ func (b *bot) cronList() {
 			return
 		}
 
-		b.privmsgf(url)
+		b.privmsg(url)
 	}
 }
 
@@ -360,14 +360,14 @@ func (b *bot) cronUpdate(id, expression, message string) {
 	_, err := b.cron.parser.Parse(expression)
 	if err != nil {
 		b.logger.Printf("cronUpdate: %w", err)
-		b.privmsgf(b.IRC.CronErr)
+		b.privmsg(b.IRC.CronErr)
 	}
 
 	// Prepare the update query.
 	stmt, err := b.prepare("UPDATE cron SET expression = ?, message = ?, updated_at = ? WHERE id = ? AND is_deleted = 0")
 	if err != nil {
 		b.logger.Printf("cronUpdate: %w", err)
-		b.privmsgf(b.DB.Err)
+		b.privmsg(b.DB.Err)
 		return
 	}
 	defer stmt.Close()
@@ -376,7 +376,7 @@ func (b *bot) cronUpdate(id, expression, message string) {
 	_, err = stmt.Exec(expression, message, newTimestamp(), id)
 	if err != nil {
 		b.logger.Printf("cronUpdate: %w", err)
-		b.privmsgf(b.DB.Err)
+		b.privmsg(b.DB.Err)
 		return
 	}
 
@@ -385,9 +385,9 @@ func (b *bot) cronUpdate(id, expression, message string) {
 	err = b.cron.add(id, expression, message, 0, 0, false, b)
 	if err != nil {
 		b.logger.Printf("cronUpdate: %w", err)
-		b.privmsgf(b.IRC.CronErr)
+		b.privmsg(b.IRC.CronErr)
 	}
 
 	// Send a notice that the cron job was updated.
-	b.privmsgf(b.IRC.CronMsgUpdate)
+	b.privmsg(b.IRC.CronMsgUpdate)
 }

@@ -84,9 +84,9 @@ func (b *bot) giphyHandler(m *irc.Message) {
 	}
 
 	if err == GiphyNothingFound {
-		b.privmsgf(b.IRC.GiphyMsgNothingFound)
+		b.privmsg(b.IRC.GiphyMsgNothingFound)
 	} else if giphy != "" {
-		b.privmsgf(giphy)
+		b.privmsg(giphy)
 	}
 }
 

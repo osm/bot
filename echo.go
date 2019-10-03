@@ -30,6 +30,6 @@ func (b *bot) echoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b.privmsgf(data)
+	b.privmsg(data)
 	fmt.Fprintf(w, data)
 }

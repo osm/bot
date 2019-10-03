@@ -111,6 +111,6 @@ func (b *bot) chattistik(date, word string) {
 	sort.Sort(sort.Reverse(sort.IntSlice(sortedKeys)))
 
 	for _, k := range sortedKeys {
-		b.privmsgf("%d: %s", k, count[k])
+		b.privmsg(fmt.Sprintf("%d: %s", k, count[k]))
 	}
 }
