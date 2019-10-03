@@ -30,17 +30,19 @@ func (b *bot) initLyssnarDefaults() {
 
 // lyssnarHandler handles the lyssnar request from the IRC channel.
 func (b *bot) lyssnarHandler(m *irc.Message) {
-	if b.shouldIgnore(m) {
-		return
-	}
-
 	a := b.parseAction(m).(*privmsgAction)
 	if !a.validChannel {
 		return
 	}
+
 	if a.cmd != b.IRC.LyssnarCmd {
 		return
 	}
+
+	if b.shouldIgnore(m) {
+		return
+	}
+
 	if len(a.args) != 1 {
 		return
 	}

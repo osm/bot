@@ -31,10 +31,6 @@ var chattistikDateRegexp = regexp.MustCompile("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
 // written to support one and only one channel, so the channel information is
 // NOT stored in the database.
 func (b *bot) chattistikHandler(m *irc.Message) {
-	if b.shouldIgnore(m) {
-		return
-	}
-
 	a := b.parseAction(m).(*privmsgAction)
 	if !a.validChannel {
 		return
@@ -45,6 +41,10 @@ func (b *bot) chattistikHandler(m *irc.Message) {
 	}
 
 	if len(a.args) != 1 {
+		return
+	}
+
+	if b.shouldIgnore(m) {
 		return
 	}
 

@@ -90,10 +90,6 @@ func (b *bot) initFactoidDefaults() {
 
 // factoidHandler is the main entry point for all factoid related commands.
 func (b *bot) factoidHandler(m *irc.Message) {
-	if b.shouldIgnore(m) {
-		return
-	}
-
 	// Parse the action
 	a := b.parseAction(m).(*privmsgAction)
 	if !a.validChannel {
@@ -110,6 +106,10 @@ func (b *bot) factoidHandler(m *irc.Message) {
 	// we'll check if it's a factoid and if we should send a reply to the
 	// channel.
 	if a.cmd == b.IRC.FactoidCmd && subCmd == b.IRC.FactoidSubCmdAdd && len(a.args) >= 4 {
+		if b.shouldIgnore(m) {
+			return
+		}
+
 		// Remove the factoid cmd and sub cmd from the message.
 		msg := strings.Replace(
 			a.msg,
@@ -131,8 +131,14 @@ func (b *bot) factoidHandler(m *irc.Message) {
 			msg[dpos+len(b.IRC.FactoidSubCmdAddDelimiter):],
 		)
 	} else if a.cmd == b.IRC.FactoidCmd && subCmd == b.IRC.FactoidSubCmdDelete && len(a.args) == 2 {
+		if b.shouldIgnore(m) {
+			return
+		}
 		b.factoidHandleDelete(a.args[1])
 	} else if a.cmd == b.IRC.FactoidCmd && subCmd == b.IRC.FactoidSubCmdSnoop && len(a.args) >= 2 {
+		if b.shouldIgnore(m) {
+			return
+		}
 		b.factoidHandleSnoop(
 			strings.Replace(
 				a.msg,
@@ -142,6 +148,9 @@ func (b *bot) factoidHandler(m *irc.Message) {
 			),
 		)
 	} else if a.cmd == b.IRC.FactoidCmd && subCmd == b.IRC.FactoidSubCmdCount && len(a.args) >= 2 {
+		if b.shouldIgnore(m) {
+			return
+		}
 		b.factoidHandleCount(
 			strings.Replace(
 				a.msg,

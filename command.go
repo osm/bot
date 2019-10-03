@@ -49,14 +49,14 @@ var commandArgumentRegexp = regexp.MustCompile("^[a-zA-Z0-9 ]*$")
 // message was seen in a channel it will return it back to the channel,
 // otherwise it will be sent back to the user.
 func (b *bot) commandHandler(m *irc.Message) {
-	if b.shouldIgnore(m) {
-		return
-	}
-
 	a := b.parseAction(m).(*privmsgAction)
 
 	c, ok := b.IRC.commands[a.cmd]
 	if !ok {
+		return
+	}
+
+	if b.shouldIgnore(m) {
 		return
 	}
 

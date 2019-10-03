@@ -57,16 +57,16 @@ type GiphyMeta struct {
 // If arguments are passed a search will be performed, otherwise a random
 // giphy will be returned to the channel.
 func (b *bot) giphyHandler(m *irc.Message) {
-	if b.shouldIgnore(m) {
-		return
-	}
-
 	a := b.parseAction(m).(*privmsgAction)
 	if !a.validChannel {
 		return
 	}
 
 	if a.cmd != b.IRC.GiphyCmd {
+		return
+	}
+
+	if b.shouldIgnore(m) {
 		return
 	}
 

@@ -70,6 +70,12 @@ func (b *bot) initIRC() {
 		b.IRC.client.Handle("KICK", b.kickHandler)
 	}
 
+	if b.IRC.EnableFloodProt {
+		b.initFloodProt()
+		b.initFloodProtDefaults()
+		b.IRC.client.Handle("PRIVMSG", b.floodProtHandler)
+	}
+
 	if b.IRC.EnableCommands {
 		b.initCommandDefaults()
 		b.IRC.client.Handle("PRIVMSG", b.commandHandler)
@@ -199,6 +205,12 @@ func (b *bot) rndName() string {
 // or not.
 func (b *bot) shouldIgnore(m *irc.Message) bool {
 	h := parseHost(m)
+
+	// Acquire the ignore mutex lock before we iterate over the ignore map
+	// to prevent race conditions.
+	b.IRC.ignoreMu.Lock()
+	defer b.IRC.ignoreMu.Unlock()
+
 	for _, r := range b.IRC.ignore {
 		if r.Match([]byte(h)) {
 			return true

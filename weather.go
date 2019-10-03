@@ -27,10 +27,6 @@ func (b *bot) initWeatherDefaults() {
 // the configuration file and pass it to the weather api.  This handler
 // requires a valid API key in the configuration.
 func (b *bot) weatherHandler(m *irc.Message) {
-	if b.shouldIgnore(m) {
-		return
-	}
-
 	a := b.parseAction(m).(*privmsgAction)
 
 	if !a.validChannel {
@@ -38,6 +34,10 @@ func (b *bot) weatherHandler(m *irc.Message) {
 	}
 
 	if a.cmd != b.IRC.WeatherCmd {
+		return
+	}
+
+	if b.shouldIgnore(m) {
 		return
 	}
 

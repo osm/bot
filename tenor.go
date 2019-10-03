@@ -39,16 +39,17 @@ func (b *bot) initTenorDefaults() {
 
 // tenorHandler handles the Tenor integration.
 func (b *bot) tenorHandler(m *irc.Message) {
-	if b.shouldIgnore(m) {
-		return
-	}
-
 	a := b.parseAction(m).(*privmsgAction)
+
 	if !a.validChannel {
 		return
 	}
 
 	if a.cmd != b.IRC.TenorCmd {
+		return
+	}
+
+	if b.shouldIgnore(m) {
 		return
 	}
 

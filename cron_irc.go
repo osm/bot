@@ -125,10 +125,6 @@ func (b *bot) initCron() {
 
 // cronHandler handles the IRC integration of the cron job scheduler.
 func (b *bot) cronHandler(m *irc.Message) {
-	if b.shouldIgnore(m) {
-		return
-	}
-
 	// Parse the action
 	a := b.parseAction(m).(*privmsgAction)
 	if !a.validChannel {
@@ -137,6 +133,10 @@ func (b *bot) cronHandler(m *irc.Message) {
 
 	// Not a valid cron cmd, return early.
 	if a.cmd != b.IRC.CronCmd || len(a.args) < 1 {
+		return
+	}
+
+	if b.shouldIgnore(m) {
 		return
 	}
 

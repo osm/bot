@@ -173,8 +173,16 @@ type bot struct {
 		operators []*regexp.Regexp
 		Operators []string `json:"operators"`
 
-		ignore []*regexp.Regexp
-		Ignore []string `json:"ignore"`
+		ignoreMu sync.Mutex
+		ignore   map[string]*regexp.Regexp
+		Ignore   []string `json:"ignore"`
+
+		EnableFloodProt        bool   `json:"enableFloodProt"`
+		FloodProtTimeThreshold int    `json:"floodProtTimeThreshold"`
+		FloodProtCmdThreshold  int    `json:"floodProtCmdThreshold"`
+		FloodProtIgnoreTime    int    `json:"floodProtIgnoreTime"`
+		FloodProtMsgIgnore     string `json:"floodProtMsgIgnore"`
+		FloodProtMsgUnignore   string `json:"floodProtMsgUnignore"`
 
 		EnableFactoid bool `json:"enableFactoid"`
 		FactoidRate   int  `json:"factoidRate"`
@@ -240,10 +248,13 @@ func newBotFromConfig(c string) (*bot, error) {
 
 	// Convert the Ignore array into a map to make lookups more
 	// efficient.
+	bot.IRC.ignore = make(map[string]*regexp.Regexp)
 	if len(bot.IRC.Ignore) > 0 {
+		bot.IRC.ignoreMu.Lock()
 		for _, r := range bot.IRC.Ignore {
-			bot.IRC.ignore = append(bot.IRC.ignore, regexp.MustCompile(r))
+			bot.IRC.ignore[r] = regexp.MustCompile(r)
 		}
+		bot.IRC.ignoreMu.Unlock()
 	}
 
 	// Convert Commands and CommandsStatic to the internal command
