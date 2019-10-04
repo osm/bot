@@ -173,9 +173,10 @@ type bot struct {
 		operators []*regexp.Regexp
 		Operators []string `json:"operators"`
 
-		ignoreMu sync.Mutex
-		ignore   map[string]*regexp.Regexp
-		Ignore   []string `json:"ignore"`
+		ignoreDyn   map[string]bool
+		ignoreDynMu sync.Mutex
+		ignorePerm  []*regexp.Regexp
+		Ignore      []string `json:"ignore"`
 
 		EnableFloodProt        bool   `json:"enableFloodProt"`
 		FloodProtTimeThreshold int    `json:"floodProtTimeThreshold"`
@@ -246,15 +247,15 @@ func newBotFromConfig(c string) (*bot, error) {
 		}
 	}
 
-	// Convert the Ignore array into a map to make lookups more
-	// efficient.
-	bot.IRC.ignore = make(map[string]*regexp.Regexp)
+	// Create a map for the dynamic ignores and if there are permanent
+	// ignores we'll add them as regexps to the ignorePerm array.
+	if bot.IRC.EnableFloodProt {
+		bot.IRC.ignoreDyn = make(map[string]bool)
+	}
 	if len(bot.IRC.Ignore) > 0 {
-		bot.IRC.ignoreMu.Lock()
 		for _, r := range bot.IRC.Ignore {
-			bot.IRC.ignore[r] = regexp.MustCompile(r)
+			bot.IRC.ignorePerm = append(bot.IRC.ignorePerm, regexp.MustCompile(r))
 		}
-		bot.IRC.ignoreMu.Unlock()
 	}
 
 	// Convert Commands and CommandsStatic to the internal command

@@ -206,13 +206,19 @@ func (b *bot) rndName() string {
 func (b *bot) shouldIgnore(m *irc.Message) bool {
 	h := parseHost(m)
 
-	// Acquire the ignore mutex lock before we iterate over the ignore map
-	// to prevent race conditions.
-	b.IRC.ignoreMu.Lock()
-	defer b.IRC.ignoreMu.Unlock()
-
-	for _, r := range b.IRC.ignore {
+	// Check if the message comes from a permanently ignored user.
+	for _, r := range b.IRC.ignorePerm {
 		if r.Match([]byte(h)) {
+			return true
+		}
+	}
+
+	if b.IRC.EnableFloodProt {
+		// Acquire the ignore mutex lock before we check if the dynamic ignore
+		// map contains the host.
+		b.IRC.ignoreDynMu.Lock()
+		defer b.IRC.ignoreDynMu.Unlock()
+		if _, ignored := b.IRC.ignoreDyn[h]; ignored {
 			return true
 		}
 	}

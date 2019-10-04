@@ -1,7 +1,6 @@
 package main
 
 import (
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -79,9 +78,9 @@ func (b *bot) initFloodProt() {
 					// Time to remove the ignore from the
 					// ignore map, so we need to acquire a
 					// lock to prevent a race condition.
-					b.IRC.ignoreMu.Lock()
-					delete(b.IRC.ignore, k)
-					b.IRC.ignoreMu.Unlock()
+					b.IRC.ignoreDynMu.Lock()
+					delete(b.IRC.ignoreDyn, k)
+					b.IRC.ignoreDynMu.Unlock()
 
 					b.privmsgph(b.IRC.FloodProtMsgUnignore, map[string]string{
 						"<nick>": v.nick,
@@ -146,10 +145,9 @@ func (b *bot) floodProtHandler(m *irc.Message) {
 		if !info.isIgnored && info.commandCount >= b.IRC.FloodProtCmdThreshold {
 			info.isIgnored = true
 
-			b.IRC.ignoreMu.Lock()
-			r, _ := regexp.Compile(a.host)
-			b.IRC.ignore[a.host] = r
-			b.IRC.ignoreMu.Unlock()
+			b.IRC.ignoreDynMu.Lock()
+			b.IRC.ignoreDyn[a.host] = true
+			b.IRC.ignoreDynMu.Unlock()
 
 			b.privmsgph(b.IRC.FloodProtMsgIgnore, map[string]string{
 				"<nick>": a.nick,
