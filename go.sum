@@ -4,8 +4,8 @@ github.com/mattn/go-sqlite3 v1.11.0 h1:LDdKkqtYlom37fkvqs8rMPFKAMe8+SgjbwZ6ex1/A
 github.com/mattn/go-sqlite3 v1.11.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOqkbpncsNc=
 github.com/osm/event v1.0.0 h1:pfdZ2QUAU9Cas1CMlw+CUpRtyIhhuI+rMy8cnkdAXO8=
 github.com/osm/event v1.0.0/go.mod h1:w0LNIYpkHaF62un5RwRuQv6CJP2l42m9iwcislaKZhU=
-github.com/osm/irc v1.0.0 h1:iVCCz9YJz0UmHPY9ufgUAj+3qbkRsdYmaTz3bg69wGQ=
-github.com/osm/irc v1.0.0/go.mod h1:XoRvlHSZeVQt5F0iuZrXzM644Dz6doeWiB0wB4l+ULo=
+github.com/osm/irc v1.0.1 h1:PEalc7UV4XsUPMQ7sRGwlQ9e4Q2GvfvDRowXtYUcHIo=
+github.com/osm/irc v1.0.1/go.mod h1:rSy1ovbsD4+Oq5aMDCm38fc9994iPdGPL7M+x/8TnHU=
 github.com/osm/jsonc v1.0.0 h1:gkf7NUkJOZf6r6JjoFcQqI/DPerZgKxL3hPpSiU8+pc=
 github.com/osm/jsonc v1.0.0/go.mod h1:eO1eHT9OaBNO+/gC9rV36cPVOdoLeO5r8Pml+uyhiQ8=
 github.com/osm/migrator v1.0.0 h1:agu2anxIXohVXd1kckAthDdttQFcVmD6E4QvWaSPG88=
