@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 // initEcho initializes the default values for the echo route.
@@ -30,6 +31,14 @@ func (b *bot) echoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b.privmsg(data)
+	rows := strings.Split(data, "\n")
+	for _, o := range rows {
+		if o == "" {
+			continue
+		}
+
+		b.privmsg(o)
+	}
+
 	fmt.Fprintf(w, data)
 }
