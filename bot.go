@@ -106,6 +106,28 @@ type bot struct {
 		// namesMu holds the mutex for the names map.
 		namesMu sync.Mutex
 
+		// Quiz.
+		EnableQuiz  bool              `json:"enableQuiz"`
+		QuizSources map[string]string `json:"quizSources"`
+		quizSources map[string][]QuizQuestion
+
+		QuizCmd         string `json:"quizCmd"`
+		QuizSubCmdStart string `json:"quizSubCmdStart"`
+		QuizSubCmdStop  string `json:"quizSubCmdStop"`
+		QuizSubCmdStats string `json:"quizSubCmdStats"`
+
+		QuizHintInterval time.Duration `json:"quizHintInterval"`
+
+		QuizMsgNameDoesNotExist string `json:"quizMsgNameDoesNotExist"`
+		QuizMsgAlreadyStarted   string `json:"quizMsgAlreadyStarted"`
+		QuizMsgQuestion         string `json:"quizMsgQuestion"`
+		QuizMsgHint             string `json:"quizMsgHint"`
+		QuizMsgAnswer           string `json:"quizMsgAnswer"`
+		QuizMsgCorrect          string `json:"quizMsgCorrect"`
+		QuizMsgQuizEnd          string `json:"quizMsgQuizEnd"`
+
+		quizRound *quizRound
+
 		EnableLyssnar                bool              `json:"enableLyssnar"`
 		LyssnarCmd                   string            `json:"lyssnarcmd"`
 		Lyssnare                     map[string]string `json:"lyssnare"`

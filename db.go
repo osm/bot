@@ -25,6 +25,7 @@ func getDatabaseRepository() repository.Source {
 		6: "ALTER TABLE cron ADD COLUMN is_limited BOOL NOT NULL DEFAULT false;",
 		7: "ALTER TABLE cron ADD COLUMN exec_limit INT NOT NULL DEFAULT 0;",
 		8: "ALTER TABLE cron ADD COLUMN exec_count INT NOT NULL DEFAULT 0;",
+		9: "CREATE TABLE quiz_stat (id VARCHAR(36) NOT NULL PRIMARY KEY, nick TEXT NOT NULL, quiz_round_id VARCHAR(36) NOT NULL, quiz_name TEXT NOT NULL, category TEXT NOT NULL, question TEXT NOT NULL, answer TEXT NOT NULL, inserted_at TEXT NOT NULL);",
 	})
 }
 

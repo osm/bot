@@ -76,6 +76,11 @@ func (b *bot) initIRC() {
 		b.IRC.client.Handle("PRIVMSG", b.floodProtHandler)
 	}
 
+	if b.IRC.EnableQuiz {
+		b.initQuizDefaults()
+		b.IRC.client.Handle("PRIVMSG", b.quizHandler)
+	}
+
 	if b.IRC.EnableCommands {
 		b.initCommandDefaults()
 		b.IRC.client.Handle("PRIVMSG", b.commandHandler)
