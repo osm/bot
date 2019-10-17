@@ -35,7 +35,7 @@ func (b *bot) initQuizDefaults() {
 
 	// Messages.
 	if b.IRC.QuizMsgNameDoesNotExist == "" {
-		b.IRC.QuizMsgNameDoesNotExist = "name does not exist"
+		b.IRC.QuizMsgNameDoesNotExist = "<name> does not exist"
 	}
 	if b.IRC.QuizMsgAlreadyStarted == "" {
 		b.IRC.QuizMsgAlreadyStarted = "a quiz is already started"
@@ -122,7 +122,9 @@ func (b *bot) quizStart(name string) {
 	// Make sure that the name of the quiz exists in our database.
 	_, exists := b.IRC.quizSources[name]
 	if !exists {
-		b.privmsg(b.IRC.QuizMsgNameDoesNotExist)
+		b.privmsgph(b.IRC.QuizMsgNameDoesNotExist, map[string]string{
+			"<name>": name,
+		})
 		return
 	}
 
