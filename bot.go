@@ -107,8 +107,9 @@ type bot struct {
 		namesMu sync.Mutex
 
 		// Quiz.
-		EnableQuiz  bool              `json:"enableQuiz"`
-		QuizSources map[string]string `json:"quizSources"`
+		EnableQuiz       bool              `json:"enableQuiz"`
+		QuizSources      map[string]string `json:"quizSources"`
+		quizSourcesCache map[string][]QuizQuestion
 
 		QuizCmd         string `json:"quizCmd"`
 		QuizSubCmdStart string `json:"quizSubCmdStart"`

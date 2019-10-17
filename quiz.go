@@ -60,6 +60,9 @@ func (b *bot) initQuizDefaults() {
 	if b.IRC.QuizMsgQuizEnd == "" {
 		b.IRC.QuizMsgQuizEnd = "the quiz is over"
 	}
+
+	// Initialize the quiz sources cache.
+	b.IRC.quizSourcesCache = make(map[string][]QuizQuestion)
 }
 
 // quizHandler handles all IRC related communication with the quiz bot.
@@ -210,10 +213,21 @@ func newQuizRound(bot *bot, name string, nQuestions int) *quizRound {
 
 	// Load questions.
 	if strings.HasPrefix(path, "http") {
+		// Always refreh quiz from http.
 		allQuestions, err = quizLoadFromHttp(path)
+	} else if _, ok := bot.IRC.quizSourcesCache[name]; ok {
+		// The quiz exists in the cache, so just fetch it from there.
+		allQuestions = bot.IRC.quizSourcesCache[name]
 	} else {
+		// Fetch the quiz data from a local file.
 		allQuestions, err = quizLoadFromFile(path)
+		if err == nil {
+			bot.IRC.quizSourcesCache[name] = allQuestions
+		}
 	}
+
+	// Something went wrong when the quiz was loaded, log the error and
+	// print a message to the channel.
 	if err != nil {
 		bot.logger.Printf("%w", err)
 		bot.privmsgph(bot.IRC.QuizMsgLoadError, map[string]string{
