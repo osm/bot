@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/osm/irc"
@@ -157,6 +158,10 @@ type quizRound struct {
 	// the correct answer has been given by a user.
 	ch chan bool
 
+	// mu is a mutex that will be used to make sure that we don't get a
+	// race condition when answering questions.
+	mu sync.Mutex
+
 	// bot is just a pointer to the bot.
 	bot *bot
 
@@ -202,6 +207,17 @@ func newQuizRound(bot *bot, name string, nQuestions int) *quizRound {
 // answer checks whether or not the given answer is the correct answer for the
 // current question.
 func (qr *quizRound) answer(n, a string) {
+	// Acquire a lock before we check whether or not the answer is
+	// correct.
+	qr.mu.Lock()
+	defer qr.mu.Unlock()
+
+	// The quiz round might have been completed by another goroutine, so
+	// let's check that before we proceed.
+	if qr.bot.IRC.quizRound == nil {
+		return
+	}
+
 	// Incorrect answer, return early.
 	if strings.ToLower(a) != strings.ToLower(qr.question.Answer) {
 		return
