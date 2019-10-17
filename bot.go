@@ -109,7 +109,6 @@ type bot struct {
 		// Quiz.
 		EnableQuiz  bool              `json:"enableQuiz"`
 		QuizSources map[string]string `json:"quizSources"`
-		quizSources map[string][]QuizQuestion
 
 		QuizCmd         string `json:"quizCmd"`
 		QuizSubCmdStart string `json:"quizSubCmdStart"`

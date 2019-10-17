@@ -56,24 +56,6 @@ func (b *bot) initQuizDefaults() {
 	if b.IRC.QuizMsgQuizEnd == "" {
 		b.IRC.QuizMsgQuizEnd = "the quiz is over"
 	}
-
-	// Load all quiz sources into memory on boot.
-	b.IRC.quizSources = make(map[string][]QuizQuestion)
-	for name, filePath := range b.IRC.QuizSources {
-		file, err := ioutil.ReadFile(filePath)
-		if err != nil {
-			b.logger.Fatalf("quizStart: cant open quiz file %s, %w", filePath, err)
-		}
-
-		var questions []QuizQuestion
-		err = json.Unmarshal(file, &questions)
-		if err != nil {
-			b.logger.Fatalf("quizStart: cant decode quiz file, %w", err)
-			return
-		}
-
-		b.IRC.quizSources[name] = questions
-	}
 }
 
 // quizHandler handles all IRC related communication with the quiz bot.
@@ -121,7 +103,7 @@ func (b *bot) quizStart(name string) {
 	}
 
 	// Make sure that the name of the quiz exists in our database.
-	_, exists := b.IRC.quizSources[name]
+	_, exists := b.IRC.QuizSources[name]
 	if !exists {
 		b.privmsgph(b.IRC.QuizMsgNameDoesNotExist, map[string]string{
 			"<name>": name,
@@ -175,10 +157,39 @@ type quizRound struct {
 	questions []QuizQuestion
 }
 
+// quizLoadFromFile reads the given file path into memory and returns a slice
+// of quiz questions.
+func quizLoadFromFile(filePath string) ([]QuizQuestion, error) {
+	file, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("quizLoadFromFile: cant open quiz file %s, %w", filePath, err)
+	}
+
+	var questions []QuizQuestion
+	err = json.Unmarshal(file, &questions)
+	if err != nil {
+		return nil, fmt.Errorf("quizLoadFromFile: cant decode quiz file, %w", err)
+	}
+
+	return questions, nil
+}
+
 // newQuizRound returns a new quizRound data structure.
 func newQuizRound(bot *bot, name string, nQuestions int) *quizRound {
+	var allQuestions []QuizQuestion
+	var err error
+	path := bot.IRC.QuizSources[name]
+
+	// Load questions from file.
+	if !strings.HasPrefix(path, "http") {
+		allQuestions, err = quizLoadFromFile(path)
+		if err != nil {
+			bot.logger.Fatalf("%w", err)
+		}
+	}
+
 	// Make sure that we don't pick too many questions.
-	quizLen := len(bot.IRC.quizSources[name])
+	quizLen := len(allQuestions)
 	l := nQuestions
 	if l > quizLen {
 		l = quizLen
@@ -188,7 +199,7 @@ func newQuizRound(bot *bot, name string, nQuestions int) *quizRound {
 	// them inside the questions slice.
 	var questions []QuizQuestion
 	for i := 0; i < l; i++ {
-		questions = append(questions, bot.IRC.quizSources[name][rand.Int()%quizLen])
+		questions = append(questions, allQuestions[rand.Int()%quizLen])
 	}
 
 	// Return a new quiz round with the randomly picked questions.
