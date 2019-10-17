@@ -172,11 +172,18 @@ type quizRound struct {
 
 // newQuizRound returns a new quizRound data structure.
 func newQuizRound(bot *bot, name string, nQuestions int) *quizRound {
+	// Make sure that we don't pick too many questions.
+	quizLen := len(bot.IRC.quizSources[name])
+	l := nQuestions
+	if l > quizLen {
+		l = quizLen
+	}
+
 	// We pick nQuestions number of questions from the source and store
 	// them inside the questions slice.
 	var questions []QuizQuestion
-	for i := 0; i < nQuestions; i++ {
-		questions = append(questions, bot.IRC.quizSources[name][rand.Int()%len(bot.IRC.quizSources[name])])
+	for i := 0; i < l; i++ {
+		questions = append(questions, bot.IRC.quizSources[name][rand.Int()%quizLen])
 	}
 
 	// Return a new quiz round with the randomly picked questions.
