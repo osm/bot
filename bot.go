@@ -118,6 +118,7 @@ type bot struct {
 		QuizHintInterval time.Duration `json:"quizHintInterval"`
 
 		QuizMsgNameDoesNotExist string `json:"quizMsgNameDoesNotExist"`
+		QuizMsgLoadError        string `json:"quizMsgLoadError"`
 		QuizMsgAlreadyStarted   string `json:"quizMsgAlreadyStarted"`
 		QuizMsgQuestion         string `json:"quizMsgQuestion"`
 		QuizMsgHint             string `json:"quizMsgHint"`

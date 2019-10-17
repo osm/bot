@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/rand"
+	"net/http"
 	"sort"
 	"strings"
 	"sync"
@@ -37,6 +38,9 @@ func (b *bot) initQuizDefaults() {
 	// Messages.
 	if b.IRC.QuizMsgNameDoesNotExist == "" {
 		b.IRC.QuizMsgNameDoesNotExist = "<name> does not exist"
+	}
+	if b.IRC.QuizMsgLoadError == "" {
+		b.IRC.QuizMsgLoadError = "unable to load <name>"
 	}
 	if b.IRC.QuizMsgAlreadyStarted == "" {
 		b.IRC.QuizMsgAlreadyStarted = "a quiz is already started"
@@ -113,7 +117,9 @@ func (b *bot) quizStart(name string) {
 
 	// Initialize a new quiz round and pop the first question.
 	b.IRC.quizRound = newQuizRound(b, name, 10)
-	b.IRC.quizRound.getQuestion()
+	if b.IRC.quizRound != nil {
+		b.IRC.quizRound.getQuestion()
+	}
 }
 
 // quizQuestion defines the data structure that holds information about a
@@ -174,18 +180,46 @@ func quizLoadFromFile(filePath string) ([]QuizQuestion, error) {
 	return questions, nil
 }
 
+// quizLoadFromHttp loads quiz questions from the given url.
+func quizLoadFromHttp(url string) ([]QuizQuestion, error) {
+	res, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("quizLoadFromHttp: cant open url %s, %w", url, err)
+	}
+
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("quizLoadFromHttp: cant read body from %s, %w", url, err)
+	}
+
+	var questions []QuizQuestion
+	err = json.Unmarshal(body, &questions)
+	if err != nil {
+		return nil, fmt.Errorf("quizLoadFromHttp: cant decode quiz from %s, %s, %w", url, body, err)
+	}
+
+	return questions, nil
+}
+
 // newQuizRound returns a new quizRound data structure.
 func newQuizRound(bot *bot, name string, nQuestions int) *quizRound {
 	var allQuestions []QuizQuestion
 	var err error
 	path := bot.IRC.QuizSources[name]
 
-	// Load questions from file.
-	if !strings.HasPrefix(path, "http") {
+	// Load questions.
+	if strings.HasPrefix(path, "http") {
+		allQuestions, err = quizLoadFromHttp(path)
+	} else {
 		allQuestions, err = quizLoadFromFile(path)
-		if err != nil {
-			bot.logger.Fatalf("%w", err)
-		}
+	}
+	if err != nil {
+		bot.logger.Printf("%w", err)
+		bot.privmsgph(bot.IRC.QuizMsgLoadError, map[string]string{
+			"<name>": name,
+		})
+		return nil
 	}
 
 	// Make sure that we don't pick too many questions.
