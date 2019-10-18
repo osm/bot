@@ -205,6 +205,26 @@ func quizLoadFromHttp(url string) ([]QuizQuestion, error) {
 	return questions, nil
 }
 
+// quizLoadFromSql loads quiz questions by fetching data from the database.
+// The query should return the fields like this:
+// SELECT category, question, answer FROM blabla
+func quizLoadFromSql(b *bot, query string) ([]QuizQuestion, error) {
+	rows, err := b.query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var questions []QuizQuestion
+	for rows.Next() {
+		var c, q, a string
+		rows.Scan(&c, &q, &a)
+		questions = append(questions, QuizQuestion{c, q, a})
+	}
+
+	return questions, nil
+}
+
 // newQuizRound returns a new quizRound data structure.
 func newQuizRound(bot *bot, name string, nQuestions int) *quizRound {
 	var allQuestions []QuizQuestion
@@ -215,6 +235,9 @@ func newQuizRound(bot *bot, name string, nQuestions int) *quizRound {
 	if strings.HasPrefix(path, "http") {
 		// Always refreh quiz from http.
 		allQuestions, err = quizLoadFromHttp(path)
+	} else if strings.HasPrefix(path, "SELECT ") {
+		// Load questions from the database.
+		allQuestions, err = quizLoadFromSql(bot, path)
 	} else if _, ok := bot.IRC.quizSourcesCache[name]; ok {
 		// The quiz exists in the cache, so just fetch it from there.
 		allQuestions = bot.IRC.quizSourcesCache[name]
