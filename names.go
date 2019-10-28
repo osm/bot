@@ -54,3 +54,24 @@ func (b *bot) handleNamesRemove(m *irc.Message) {
 		delete(b.IRC.names, m.Name)
 	}
 }
+
+// handleNamesChange replaces the name in the names map when someone uses the
+// NICK command.
+func (b *bot) handleNamesChange(m *irc.Message) {
+	// Extract the current and new name from the message.
+	currentName := m.Name
+	newName := m.Params[1:]
+
+	b.IRC.namesMu.Lock()
+	defer b.IRC.namesMu.Unlock()
+
+	// Remove the old name from the map.
+	if _, ok := b.IRC.names[currentName]; ok {
+		delete(b.IRC.names, currentName)
+	}
+
+	// ... and add the new name.
+	if _, ok := b.IRC.names[newName]; !ok {
+		b.IRC.names[newName] = true
+	}
+}

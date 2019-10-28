@@ -65,6 +65,7 @@ func (b *bot) initIRC() {
 	b.IRC.client.Handle("JOIN", b.handleNamesAdd)
 	b.IRC.client.Handle("PART", b.handleNamesRemove)
 	b.IRC.client.Handle("QUIT", b.handleNamesRemove)
+	b.IRC.client.Handle("NICK", b.handleNamesChange)
 
 	if b.IRC.RejoinOnKick {
 		b.IRC.client.Handle("KICK", b.kickHandler)
