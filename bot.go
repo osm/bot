@@ -106,6 +106,11 @@ type bot struct {
 		// namesMu holds the mutex for the names map.
 		namesMu sync.Mutex
 
+		// Update notifier.
+		EnableUpdateNotifier bool     `json:"enableUpdateNotifier"`
+		UpdateNotifierMsg    string   `json:"updateNotifierMsg"`
+		UpdateNotifierNames  []string `json:"updateNotifierNames"`
+
 		// Quiz.
 		EnableQuiz       bool              `json:"enableQuiz"`
 		QuizSources      map[string]string `json:"quizSources"`

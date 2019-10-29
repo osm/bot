@@ -77,6 +77,11 @@ func (b *bot) initIRC() {
 		b.IRC.client.Handle("PRIVMSG", b.floodProtHandler)
 	}
 
+	if b.IRC.EnableUpdateNotifier {
+		b.initUpdateNotifier()
+		go b.updateNotifierHandler()
+	}
+
 	if b.IRC.EnableQuiz {
 		b.initQuizDefaults()
 		b.IRC.client.Handle("PRIVMSG", b.quizHandler)
@@ -183,6 +188,18 @@ func (b *bot) privmsgph(msg string, phs map[string]string) {
 	}
 
 	b.IRC.client.Privmsg(b.IRC.Channel, msg)
+}
+
+// privmsgpht replaces the keys of the phs map with the values and sends the
+// message to the specified target.
+func (b *bot) privmsgpht(msg, target string, phs map[string]string) {
+	b.preventSpam()
+
+	for k, v := range phs {
+		msg = strings.ReplaceAll(msg, k, v)
+	}
+
+	b.IRC.client.Privmsg(target, msg)
 }
 
 // action sends the given message back to the channel set from the
