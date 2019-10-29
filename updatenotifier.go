@@ -35,7 +35,7 @@ func (b *bot) updateNotifierHandler() {
 
 	for {
 		// Let's sleep for an hour before we perform the check.
-		time.Sleep(5 * time.Second)
+		time.Sleep(1 * time.Hour)
 
 		// Download the HTML source of the bot repo.
 		res, err := http.Get("https://github.com/osm/bot")
@@ -63,7 +63,7 @@ func (b *bot) updateNotifierHandler() {
 		// know. We don't want to keep notifying, so we'll end the
 		// goroutine after the notification has been sent.
 		version := matches[1][0:8]
-		if version == VERSION {
+		if version != VERSION {
 			for _, name := range b.IRC.UpdateNotifierNames {
 				b.privmsgpht(b.IRC.UpdateNotifierMsg, name, map[string]string{
 					"<version>": version,
