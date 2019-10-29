@@ -220,6 +220,7 @@ type bot struct {
 
 		FactoidGrammarAction      string `json:"factoidGrammarAction"`
 		FactoidGrammarRandomWho   string `json:"factoidGrammarRandomWho"`
+		FactoidGrammarRandomWord  string `json:"factoidGrammarRandomWord"`
 		FactoidGrammarReply       string `json:"factoidGrammarReply"`
 		FactoidGrammarWho         string `json:"factoidGrammarWho"`
 		FactoidGrammarGiphy       string `json:"factoidGrammarGiphy"`

@@ -16,12 +16,16 @@ import (
 var factoidRandom = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 // factoidGrammarGiphySearchRegexp contains the regexp that finds
-// <giphy search"xxx"> tags.
+// <giphy search="xxx"> tags.
 var factoidGrammarGiphySearchRegexp *regexp.Regexp
 
 // factoidGrammarTenorSearchRegexp contains the regexp that finds
-// <tenor search"xxx"> tags.
+// <tenor search="xxx"> tags.
 var factoidGrammarTenorSearchRegexp *regexp.Regexp
+
+// factoidGrammarRandomWord contains the regexp that finds
+// <randomword words="xxx"> tags.
+var factoidGrammarRandomWord *regexp.Regexp
 
 // initFactoidDefaults sets default values for all settings.
 func (b *bot) initFactoidDefaults() {
@@ -69,6 +73,10 @@ func (b *bot) initFactoidDefaults() {
 	if b.IRC.FactoidGrammarRandomWho == "" {
 		b.IRC.FactoidGrammarRandomWho = "<randomwho>"
 	}
+	if b.IRC.FactoidGrammarRandomWord == "" {
+		b.IRC.FactoidGrammarRandomWord = "<randomword words=\"([a-zåäöüA-ZÅÄÖÜ0-9 ]+)\"[^>]*>"
+	}
+	factoidGrammarRandomWord = regexp.MustCompile(b.IRC.FactoidGrammarRandomWord)
 	if b.IRC.FactoidGrammarReply == "" {
 		b.IRC.FactoidGrammarReply = "<reply>"
 	}
@@ -399,6 +407,14 @@ func (b *bot) factoidHandleFact(a *privmsgAction) {
 		} else {
 			factoid = strings.Replace(factoid, matches[0], "", 1)
 		}
+	}
+
+	// Replace all <randomwords words="foo bar baz"> occurences with one of
+	// the words in the words attribute.
+	for _, matches := range factoidGrammarRandomWord.FindAllStringSubmatch(factoid, -1) {
+		strs := strings.Split(matches[1], " ")
+		str := strs[rand.Intn(len(strs))]
+		factoid = strings.Replace(factoid, matches[0], str, 1)
 	}
 
 	// Handle replies.
