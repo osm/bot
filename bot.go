@@ -111,6 +111,10 @@ type bot struct {
 		UpdateNotifierMsg    string   `json:"updateNotifierMsg"`
 		UpdateNotifierNames  []string `json:"updateNotifierNames"`
 
+		// Supernytt - news in Swedish from aftonbladet.
+		EnableSupernytt         bool   `json:"enableSupernytt"`
+		SupernyttGrammarMessage string `json:"supernyttGrammarMessage"`
+
 		// Quiz.
 		EnableQuiz       bool              `json:"enableQuiz"`
 		QuizSources      map[string]string `json:"quizSources"`

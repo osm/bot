@@ -82,6 +82,11 @@ func (b *bot) initIRC() {
 		go b.updateNotifierHandler()
 	}
 
+	if b.IRC.EnableSupernytt {
+		b.initSupernytt()
+		go b.supernyttHandler()
+	}
+
 	if b.IRC.EnableQuiz {
 		b.initQuizDefaults()
 		b.IRC.client.Handle("PRIVMSG", b.quizHandler)

@@ -17,15 +17,16 @@ import (
 // that contains the SQL alters the table in the way you want.
 func getDatabaseRepository() repository.Source {
 	return repository.FromMemory(map[int]string{
-		1: "CREATE TABLE migration (version TEXT NOT NULL PRIMARY KEY);",
-		2: "CREATE TABLE log (id VARCHAR(36) NOT NULL PRIMARY KEY, timestamp TEXT NOT NULL, nick TEXT NOT NULL, message TEXT NOT NULL); CREATE INDEX log_timestamp ON log(timestamp); CREATE INDEX log_nick_timestamp ON log(nick, timestamp);",
-		3: "CREATE TABLE url_check (id VARCHAR(36) NOT NULL PRIMARY KEY, timestamp TEXT NOT NULL, nick TEXT NOT NULL, url TEXT NOT NULL); CREATE INDEX url_check_url ON url_check(url);",
-		4: "CREATE TABLE factoid (id VARCHAR(36) NOT NULL PRIMARY KEY, timestamp TEXT NOT NULL, author TEXT NOT NULL, trigger TEXT NOT NULL, reply TEXT NOT NULL, is_deleted BOOLEAN NOT NULL); CREATE INDEX factoid_trigger ON factoid(trigger);",
-		5: "CREATE TABLE cron (id VARCHAR(36) NOT NULL PRIMARY KEY, expression TEXT NOT NULL, message TEXT NOT NULL, is_deleted BOOLEAN NOT NULL, inserted_at TEXT NOT NULL, updated_at TEXT);",
-		6: "ALTER TABLE cron ADD COLUMN is_limited BOOL NOT NULL DEFAULT false;",
-		7: "ALTER TABLE cron ADD COLUMN exec_limit INT NOT NULL DEFAULT 0;",
-		8: "ALTER TABLE cron ADD COLUMN exec_count INT NOT NULL DEFAULT 0;",
-		9: "CREATE TABLE quiz_stat (id VARCHAR(36) NOT NULL PRIMARY KEY, nick TEXT NOT NULL, quiz_round_id VARCHAR(36) NOT NULL, quiz_name TEXT NOT NULL, category TEXT NOT NULL, question TEXT NOT NULL, answer TEXT NOT NULL, inserted_at TEXT NOT NULL);",
+		1:  "CREATE TABLE migration (version TEXT NOT NULL PRIMARY KEY);",
+		2:  "CREATE TABLE log (id VARCHAR(36) NOT NULL PRIMARY KEY, timestamp TEXT NOT NULL, nick TEXT NOT NULL, message TEXT NOT NULL); CREATE INDEX log_timestamp ON log(timestamp); CREATE INDEX log_nick_timestamp ON log(nick, timestamp);",
+		3:  "CREATE TABLE url_check (id VARCHAR(36) NOT NULL PRIMARY KEY, timestamp TEXT NOT NULL, nick TEXT NOT NULL, url TEXT NOT NULL); CREATE INDEX url_check_url ON url_check(url);",
+		4:  "CREATE TABLE factoid (id VARCHAR(36) NOT NULL PRIMARY KEY, timestamp TEXT NOT NULL, author TEXT NOT NULL, trigger TEXT NOT NULL, reply TEXT NOT NULL, is_deleted BOOLEAN NOT NULL); CREATE INDEX factoid_trigger ON factoid(trigger);",
+		5:  "CREATE TABLE cron (id VARCHAR(36) NOT NULL PRIMARY KEY, expression TEXT NOT NULL, message TEXT NOT NULL, is_deleted BOOLEAN NOT NULL, inserted_at TEXT NOT NULL, updated_at TEXT);",
+		6:  "ALTER TABLE cron ADD COLUMN is_limited BOOL NOT NULL DEFAULT false;",
+		7:  "ALTER TABLE cron ADD COLUMN exec_limit INT NOT NULL DEFAULT 0;",
+		8:  "ALTER TABLE cron ADD COLUMN exec_count INT NOT NULL DEFAULT 0;",
+		9:  "CREATE TABLE quiz_stat (id VARCHAR(36) NOT NULL PRIMARY KEY, nick TEXT NOT NULL, quiz_round_id VARCHAR(36) NOT NULL, quiz_name TEXT NOT NULL, category TEXT NOT NULL, question TEXT NOT NULL, answer TEXT NOT NULL, inserted_at TEXT NOT NULL);",
+		10: "CREATE TABLE supernytt (id VARCHAR(36) NOT NULL PRIMARY KEY, external_id TEXT NOT NULL, title TEXT NOT NULL, content TEXT NOT NULL, external_created TEXT NOT NULL, inserted_at timestamp NOT NULL);",
 	})
 }
 
