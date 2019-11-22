@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -19,14 +18,6 @@ func (b *bot) initSupernytt() {
 // news.
 func (b *bot) supernyttHandler() {
 	for {
-		// newEntries will be populated with entries that we haven't
-		// stored or sent to the IRC channel.
-		var newEntries []SNEntry
-
-		// Fetch the latest external id from the database. The ID will
-		// be used to determine how many new news entries we've got.
-		latestExternalID := b.getLatestSupernyttExternalID()
-
 		// Download supernytt data, if the method returns nil
 		// something went wrong and we'll immediately goto the sleep
 		// part of the loop.
@@ -35,59 +26,40 @@ func (b *bot) supernyttHandler() {
 			goto sleep
 		}
 
-		if latestExternalID == "" {
-			// We didn't get an external id from the database, so
-			// this probably means that we haven't executed the
-			// supernytt handler before, so we'll use the latest
-			// entry and insert it and send it to the channel.
-			newEntries = append(newEntries, entries[0])
-		} else {
-			// If the first entry in the downloaded entries has the same
-			// id as our latest external id we'll sleep right away
-			// since we are caught up with all the latest news.
-			if entries[0].ID == latestExternalID {
-				goto sleep
+		// Iterate over the entries, we'll check if the ID of the
+		// entry already exists in our database, if it does we'll
+		// ignore it so that we don't store and output the same entry
+		// again.
+		for _, e := range entries {
+			// We've already handled the entity, carry on.
+			if b.hasSNExternalID(e.ID) {
+				continue
 			}
 
-			// Iterate over the entries and extract the latest news.
-			for _, e := range entries {
-				// When the id of the entry is the same as our latest
-				// external id we should stop the loop since we are
-				// caught up.
-				if e.ID == latestExternalID {
-					break
-				}
+			// Store it.
+			b.insertSNEntry(&e)
 
-				// Store it in the newEntries slice.
-				newEntries = append(newEntries, e)
-			}
-		}
-
-		// No newEntries means that we should sleep.
-		if len(newEntries) == 0 {
-			goto sleep
-		}
-
-		// Iterate over the new entries and insert them into the
-		// database and output them to the channel.
-		for _, ne := range newEntries {
-			b.insertSNEntry(&ne)
+			// Output it to the channel
 			b.privmsgph(b.IRC.SupernyttGrammarMessage, map[string]string{
-				"<title>":   ne.Title.Value,
-				"<content>": ne.getContent(),
+				"<title>":   e.Title.Value,
+				"<content>": e.getContent(),
 			})
+
+			// To prevent spamming we'll sleep for a minute before
+			// we proceed.
+			time.Sleep(1 * time.Minute)
 		}
 
 	sleep:
 		// Wait 10 minutes before we fetch the news again.
-		time.Sleep(1 * time.Minute)
+		time.Sleep(10 * time.Minute)
 	}
 }
 
 // getSupernyttData downloads the latest news from supernytt and returns a
 // slice of SNEntry objects.
 func (b *bot) getSupernyttData() []SNEntry {
-	res, err := http.Get("https://direkte.vg.no/api/ab/newsflow/5d0b819f4c641c00121148c9/entries?offset=0&showAdverts=false")
+	res, err := http.Get("https://direkte.vg.no/api/ab/newsflow/5d0b819f4c641c00121148c9/entries?offset=0&limit=5&showAdverts=false")
 	if err != nil {
 		b.logger.Printf("getSupernyttData: %w", err)
 		return nil
@@ -112,16 +84,14 @@ func (b *bot) getSupernyttData() []SNEntry {
 	return sn.Entries
 }
 
-// getLatestSupernyttExternalID fetches the latest external id from the
-// supernytt table.
-func (b *bot) getLatestSupernyttExternalID() string {
-	var externalID string
-	err := b.queryRow("SELECT external_id FROM supernytt ORDER BY inserted_at DESC").Scan(&externalID)
-	if err != nil && err != sql.ErrNoRows {
-		b.logger.Printf("getLatestSupernyttID: %v", err)
-		return ""
+// hasSNExternalID checks whether or not the external id exists.
+func (b *bot) hasSNExternalID(externalID string) bool {
+	var exists string
+	err := b.queryRow("SELECT 1 FROM supernytt WHERE external_id = ?", externalID).Scan(&exists)
+	if err != nil {
+		return false
 	}
-	return externalID
+	return true
 }
 
 // insertSNEntry inserts a supernytt entry into the database.
