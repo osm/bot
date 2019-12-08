@@ -334,7 +334,7 @@ func (b *bot) factoidHandleInsertFact(author, trigger, reply string) {
 // channel.
 func (b *bot) factoidHandleFact(a *privmsgAction) {
 	// Let's check whether the message is a known trigger.
-	rows, err := b.query("SELECT reply FROM factoid WHERE trigger = ? AND is_deleted = 0", a.msg)
+	rows, err := b.query("SELECT reply, rate FROM factoid WHERE trigger = ? AND is_deleted = 0", a.msg)
 	if err != nil {
 		b.logger.Printf("factoidHandleFact: %v", err)
 		b.privmsg(b.DB.Err)
@@ -344,11 +344,16 @@ func (b *bot) factoidHandleFact(a *privmsgAction) {
 
 	// There can be more than one factoid for a trigger. So let's store
 	// all of them.
-	var factoids []string
+	type entry struct {
+		fact string
+		rate *int
+	}
+	var factoids []entry
 	for rows.Next() {
 		var f string
-		rows.Scan(&f)
-		factoids = append(factoids, f)
+		var r *int
+		rows.Scan(&f, &r)
+		factoids = append(factoids, entry{f, r})
 	}
 
 	// No factoids, return early.
@@ -356,16 +361,20 @@ func (b *bot) factoidHandleFact(a *privmsgAction) {
 		return
 	}
 
-	// If factoid rate is set, we'll only reply with the found factoid if
-	// the random number is greater than the defined value in the config.
-	if b.IRC.FactoidRate > 0 {
-		if b.IRC.FactoidRate >= factoidRandom.Intn(100) {
-			return
-		}
-	}
+	// Get a random fact and rate from the slice of factoids.
+	idx := rand.Intn(len(factoids))
+	factoid := factoids[idx].fact
+	rate := factoids[idx].rate
 
-	// Get a random factoid from the slice.
-	factoid := factoids[rand.Intn(len(factoids))]
+	// If factoid rate is set, we'll only reply with the found factoid if
+	// the random number is greater than the defined value on the fact, if
+	// there are no rate on the set on the fact we'll fallback to the rate
+	// defined in the configuration file.
+	if rate != nil && *rate >= factoidRandom.Intn(100) {
+		return
+	} else if rate == nil && b.IRC.FactoidRate > 0 && b.IRC.FactoidRate >= factoidRandom.Intn(100) {
+		return
+	}
 
 	// Replace all occurences of <who> with the senders nick.
 	i := strings.Index(factoid, b.IRC.FactoidGrammarWho)

@@ -27,6 +27,7 @@ func getDatabaseRepository() repository.Source {
 		8:  "ALTER TABLE cron ADD COLUMN exec_count INT NOT NULL DEFAULT 0;",
 		9:  "CREATE TABLE quiz_stat (id VARCHAR(36) NOT NULL PRIMARY KEY, nick TEXT NOT NULL, quiz_round_id VARCHAR(36) NOT NULL, quiz_name TEXT NOT NULL, category TEXT NOT NULL, question TEXT NOT NULL, answer TEXT NOT NULL, inserted_at TEXT NOT NULL);",
 		10: "CREATE TABLE supernytt (id VARCHAR(36) NOT NULL PRIMARY KEY, external_id TEXT NOT NULL, title TEXT NOT NULL, content TEXT NOT NULL, external_created TEXT NOT NULL, inserted_at timestamp NOT NULL);",
+		11: "ALTER TABLE factoid ADD COLUMN rate INTEGER;",
 	})
 }
 
