@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"os"
 	"strings"
 	"time"
 
@@ -147,6 +148,7 @@ func (b *bot) initIRC() {
 	go func() {
 		if err := b.IRC.client.Connect(); err != nil {
 			fmt.Printf("IRC connection died: %v\n", err)
+			os.Exit(1)
 		}
 
 		b.mainWG.Done()
