@@ -103,6 +103,11 @@ func (b *bot) initIRC() {
 		b.IRC.client.Handle("PRIVMSG", b.urlCheckHandler)
 	}
 
+	if b.IRC.EnableMarch {
+		b.initMarchDefaults()
+		b.IRC.client.Handle("PRIVMSG", b.marchHandler)
+	}
+
 	if b.IRC.EnableLogging {
 		b.IRC.client.Handle("PRIVMSG", b.loggingHandler)
 	}
