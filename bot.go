@@ -161,6 +161,7 @@ type bot struct {
 		ChattistikCmd          string `json:"chattistikCmd"`
 		ChattistikCmdToday     string `json:"chattistikCmdToday"`
 		ChattistikCmdYesterday string `json:"chattistikCmdYesterday"`
+		ChattistikMsgNoStats   string `json:"chattistikMsgNoStats"`
 		EnableChattistik       bool   `json:"enableChattistik"`
 		EnableLogging          bool   `json:"enableLogging"`
 

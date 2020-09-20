@@ -21,6 +21,9 @@ func (b *bot) initChattistikDefaults() {
 	if b.IRC.ChattistikCmdYesterday == "" {
 		b.IRC.ChattistikCmdYesterday = "yesterday"
 	}
+	if b.IRC.ChattistikMsgNoStats == "" {
+		b.IRC.ChattistikMsgNoStats = "There are no stats for the date"
+	}
 }
 
 // chattistikDateRegexp defines a iso 8601 regexp.
@@ -90,6 +93,11 @@ func (b *bot) chattistik(date, word string) {
 				}
 			}
 		}
+	}
+
+	if len(stats) == 0 {
+		b.privmsg(b.IRC.ChattistikMsgNoStats)
+		return
 	}
 
 	// Construct a map of the stats but where the key is the word count
