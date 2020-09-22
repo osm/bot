@@ -147,6 +147,11 @@ func (b *bot) initIRC() {
 		b.IRC.client.Handle("PRIVMSG", b.cronHandler)
 	}
 
+	if len(b.IRC.Dictionaries) > 0 {
+		b.initDictionaries()
+		b.IRC.client.Handle("PRIVMSG", b.dictionaryHandler)
+	}
+
 	// This goroutine handles the connection to the IRC server. The IRC
 	// library will automatically try to reconnect if the connection dies
 	// for some reason.

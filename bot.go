@@ -250,6 +250,13 @@ type bot struct {
 		FactoidMsgCount  string `json:"factoidMsgCount"`
 
 		PastebinAPIKey string `json:"pastebinApiKey"`
+
+		Dictionaries []struct {
+			Trigger     string `json:"trigger"`
+			Dictionary  string `json:"dictionary"`
+			FoundMsg    string `json:"foundMsg"`
+			NotFoundMsg string `json:"notFoundMsg"`
+		} `json:"dictionaries"`
 	}
 }
 
