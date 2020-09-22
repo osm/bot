@@ -73,7 +73,7 @@ func (b *bot) chattistik(date, word string) {
 	}
 	defer rows.Close()
 
-	// Count how many words there has been for each nick We split on
+	// Count how many words there has been for each nick. We split on
 	// spaces, so each space separated string is considered to be a word.
 	stats := make(map[string]int)
 	for rows.Next() {
@@ -100,10 +100,43 @@ func (b *bot) chattistik(date, word string) {
 		return
 	}
 
+	// Construct a stats hash where all the different casings of the nicks
+	// has been merged into one map.
+	statsHash := make(map[string]map[string]int)
+	for k, v := range stats {
+		key := strings.ToLower(k)
+
+		if _, ok := statsHash[key]; !ok {
+			statsHash[key] = make(map[string]int)
+		}
+		statsHash[key][k] = v
+
+	}
+
+	// Iterate over the stats hash create a merged version of if.
+	// For example, if osm has 2 words and OSM has 5 we'll get a key that
+	// looks like:
+	// osm, OSM and a value of 7.
+	statsWithMergedNicks := make(map[string]int)
+	for _, stats := range statsHash {
+		key := ""
+		value := 0
+		for k, v := range stats {
+			if key == "" {
+				key = k
+			} else {
+				key = fmt.Sprintf("%s, %s", key, k)
+			}
+
+			value += v
+		}
+		statsWithMergedNicks[key] = value
+	}
+
 	// Construct a map of the stats but where the key is the word count
 	// instead of the nick.
 	count := make(map[int]string)
-	for k, v := range stats {
+	for k, v := range statsWithMergedNicks {
 		if _, ok := count[v]; !ok {
 			count[v] = k
 		} else {
