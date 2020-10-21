@@ -37,6 +37,10 @@ type bot struct {
 	// things in the future.
 	cron *cron
 
+	// Timezone will contain the timezone which the bot is operating in.
+	Timezone string
+	timezone *time.Location
+
 	DB struct {
 		client *sql.DB
 
@@ -257,6 +261,16 @@ type bot struct {
 			FoundMsg    string `json:"foundMsg"`
 			NotFoundMsg string `json:"notFoundMsg"`
 		} `json:"dictionaries"`
+
+		EnableSMHI            bool   `json:"enableSMHI"`
+		SMHILanguage          string `json:"smhiLanguage"`
+		SMHICmdWeather        string `json:"smhiCmdWeather"`
+		SMHIMsgWeatherError   string `json:"smhiMsgWeatherError"`
+		SMHIMsgWeather        string `json:"smhiMsgWeather"`
+		SMHIForecastLocations map[string]struct {
+			Latitude  float64 `json:"latitude"`
+			Longitude float64 `json:"longitude"`
+		}
 	}
 }
 
@@ -282,6 +296,14 @@ func newBotFromConfig(c string) (*bot, error) {
 	}
 
 	bot.configFile = c
+
+	// Always default to Europe/Stockholm.
+	if bot.Timezone == "" {
+		bot.Timezone = "Europe/Stockholm"
+	}
+	if bot.timezone, err = time.LoadLocation(bot.Timezone); err != nil {
+		return nil, fmt.Errorf("error: can't load timezone %s, %v", bot.Timezone, err)
+	}
 
 	// Initialize the names map.
 	bot.IRC.names = make(map[string]bool)

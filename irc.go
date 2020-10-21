@@ -83,6 +83,12 @@ func (b *bot) initIRC() {
 		go b.updateNotifierHandler()
 	}
 
+	if b.IRC.EnableSMHI {
+		b.initSMHIDefaults()
+		b.IRC.client.Handle("PRIVMSG", b.smhiCommandHandler)
+		go b.smhiGetForecasts()
+	}
+
 	if b.IRC.EnableSupernytt {
 		b.initSupernytt()
 		go b.supernyttHandler()

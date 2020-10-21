@@ -29,6 +29,36 @@ func getDatabaseRepository() repository.Source {
 		10: "CREATE TABLE supernytt (id VARCHAR(36) NOT NULL PRIMARY KEY, external_id TEXT NOT NULL, title TEXT NOT NULL, content TEXT NOT NULL, external_created TEXT NOT NULL, inserted_at timestamp NOT NULL);",
 		11: "ALTER TABLE factoid ADD COLUMN rate INTEGER;",
 		12: "CREATE TABLE march (id VARCHAR(36) NOT NULL PRIMARY KEY, url TEXT NOT NULL, foreign_id VARCHAR(36) NOT NULL, inserted_at TIMESTAMP NOT NULL); CREATE INDEX march_url ON march(url);",
+		13: `
+			CREATE TABLE smhi_forecast (
+				id TIMESTAMP NOT NULL PRIMARY KEY,
+				inserted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+				updated_at TIMESTAMP NOT NULL,
+				name TEXT NOT NULL,
+				air_pressure REAL NOT NULL,
+				air_temperature REAL NOT NULL,
+				horizontal_visibility REAL NOT NULL,
+				maximum_precipitation_intensity REAL NOT NULL,
+				mean_precipitation_intensity REAL NOT NULL,
+				mean_value_of_high_level_cloud_cover INTEGER NOT NULL,
+				mean_value_of_low_level_cloud_cover INTEGER NOT NULL,
+				mean_value_of_medium_level_cloud_cover INTEGER NOT NULL,
+				mean_value_of_total_cloud_cover INTEGER NOT NULL,
+				median_precipitation_intensity REAL NOT NULL,
+				minimum_precipitation_intensity REAL NOT NULL,
+				percent_of_precipitation_in_frozen_form INTEGER NOT NULL,
+				precipitation_category INTEGER NOT NULL,
+				precipitation_category_description TEXT NOT NULL,
+				relative_humidity INTEGER NOT NULL,
+				thunder_probability INTEGER NOT NULL,
+				weather_symbol INTEGER NOT NULL,
+				weather_symbol_description TEXT NOT NULL,
+				wind_direction INTEGER NOT NULL,
+				wind_gust_speed REAL NOT NULL,
+				wind_speed REAL NOT NULL
+			);
+		`,
+		14: "CREATE INDEX smhi_forecast_name ON smhi_forecast(name);",
 	})
 }
 

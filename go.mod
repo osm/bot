@@ -8,5 +8,6 @@ require (
 	github.com/osm/jsonc v1.0.0
 	github.com/osm/migrator v1.0.1
 	github.com/osm/pastebin v1.0.1
+	github.com/osm/smhi v1.0.3
 	github.com/robfig/cron/v3 v3.0.0
 )
