@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/osm/irc"
@@ -111,7 +112,10 @@ func (b *bot) smhiGetForecasts() {
 				defer stmt.Close()
 
 				_, err = stmt.Exec(
-					ts.Timestamp.In(b.timezone).Format("2006-01-02T15:04:05.999"),
+					fmt.Sprintf("%s-%s",
+						name,
+						ts.Timestamp.In(b.timezone).Format("2006-01-02T15:04:05.999"),
+					),
 					newTimestamp(),
 					name,
 					ts.AirPressure,
