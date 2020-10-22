@@ -10,6 +10,7 @@ import (
 
 const SMHI_FORECAST_CURRENT_SELECT_SQL = `SELECT
 	id,
+	timestamp,
 	inserted_at,
 	updated_at,
 	air_pressure,
@@ -37,13 +38,14 @@ FROM
 	smhi_forecast
 WHERE
 	name = $1 AND
-	id >= ?
-ORDER BY id
+	timestamp >= ?
+ORDER BY timestamp
 LIMIT 1`
 
 const SMHI_FORECAST_INSERT_SQL = `INSERT OR REPLACE INTO smhi_forecast (
 	id,
 	updated_at,
+	timestamp,
 	name,
 	air_pressure,
 	air_temperature,
@@ -66,7 +68,7 @@ const SMHI_FORECAST_INSERT_SQL = `INSERT OR REPLACE INTO smhi_forecast (
 	wind_direction,
 	wind_gust_speed,
 	wind_speed
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 // initSMHIDefaults sets default values for all settings.
 func (b *bot) initSMHIDefaults() {
@@ -111,12 +113,15 @@ func (b *bot) smhiGetForecasts() {
 				}
 				defer stmt.Close()
 
+				smhiTimestamp := ts.Timestamp.In(b.timezone).Format("2006-01-02T15:04:05.999")
+
 				_, err = stmt.Exec(
 					fmt.Sprintf("%s-%s",
+						smhiTimestamp,
 						name,
-						ts.Timestamp.In(b.timezone).Format("2006-01-02T15:04:05.999"),
 					),
 					newTimestamp(),
+					smhiTimestamp,
 					name,
 					ts.AirPressure,
 					ts.AirTemperature,
@@ -175,6 +180,7 @@ func (b *bot) smhiCommandHandler(m *irc.Message) {
 	name := a.args[0]
 
 	var id string
+	var timestamp string
 	var insertedAt string
 	var updatedAt string
 	var airPressure string
@@ -200,6 +206,7 @@ func (b *bot) smhiCommandHandler(m *irc.Message) {
 	var windSpeed string
 	err := b.queryRow(SMHI_FORECAST_CURRENT_SELECT_SQL, name, newTimestamp()).Scan(
 		&id,
+		&timestamp,
 		&insertedAt,
 		&updatedAt,
 		&airPressure,
@@ -231,6 +238,7 @@ func (b *bot) smhiCommandHandler(m *irc.Message) {
 
 	b.privmsgph(b.IRC.SMHIMsgWeather, map[string]string{
 		"<id>":                                      id,
+		"<timestamp>":                               timestamp,
 		"<inserted_at>":                             insertedAt,
 		"<updated_at>":                              updatedAt,
 		"<name>":                                    name,
