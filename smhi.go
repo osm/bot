@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/osm/irc"
@@ -74,6 +75,10 @@ const SMHI_FORECAST_INSERT_SQL = `INSERT INTO smhi_forecast (
 	wind_gust_speed,
 	wind_speed
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 // initSMHIDefaults sets default values for all settings.
 func (b *bot) initSMHIDefaults() {
@@ -179,6 +184,14 @@ func (b *bot) smhiGetForecasts() {
 					b.privmsg(b.DB.Err)
 					continue
 				}
+
+				// Since the bot might be running on a slow
+				// machine and we are using a SQLite which
+				// doesn't handle a lot of inserts very well
+				// (at least not on my RPI4), we'll sleep a
+				// while for each insert so that we can catch
+				// up.
+				time.Sleep(time.Duration(rand.Intn(5)) * time.Second)
 			}
 		}
 
