@@ -42,7 +42,12 @@ WHERE
 ORDER BY timestamp
 LIMIT 1`
 
-const SMHI_FORECAST_INSERT_SQL = `INSERT OR REPLACE INTO smhi_forecast (
+const SMHI_FORECAST_DELETE_SQL = `DELETE FROM smhi_forecast
+WHERE
+	name = ? AND
+	timestamp >= ?`
+
+const SMHI_FORECAST_INSERT_SQL = `INSERT INTO smhi_forecast (
 	id,
 	updated_at,
 	timestamp,
@@ -97,10 +102,34 @@ func (b *bot) smhiGetForecasts() {
 		// Iterate over the locations and fetch a forecast for the given
 		// coordinates.
 		for name, coord := range b.IRC.SMHIForecastLocations {
+			b.logger.Printf("smhiGetForecasts: fetching forecasts for %s", name)
 			if fc, err = smhi.GetPointForecast(coord.Longitude, coord.Latitude); err != nil {
 				b.logger.Printf("smhiGetForecasts: %v", err)
 				continue
 			}
+			b.logger.Printf("smhiGetForecasts: got forecasts for %s", name)
+
+			if len(fc.TimeSeries) < 1 {
+				continue
+			}
+
+			stmt, err := b.prepare(SMHI_FORECAST_DELETE_SQL)
+			if err != nil {
+				b.logger.Printf("smhiGetForecasts: %v", err)
+				b.privmsg(b.DB.Err)
+				continue
+			}
+			defer stmt.Close()
+
+			smhiTimestamp := fc.TimeSeries[0].Timestamp.In(b.timezone).Format("2006-01-02T15:04:05.999")
+			b.logger.Printf("smhiGetForecasts: deleting forecasts for %s from %s", name, smhiTimestamp)
+			_, err = stmt.Exec(name, smhiTimestamp)
+			if err != nil {
+				b.logger.Printf("smhiGetForecasts: %v", err)
+				b.privmsg(b.DB.Err)
+				continue
+			}
+			b.logger.Printf("smhiGetForecasts: deleting done")
 
 			// Iterate over the time series, which includes the actual
 			// forecast data.
@@ -114,7 +143,7 @@ func (b *bot) smhiGetForecasts() {
 				defer stmt.Close()
 
 				smhiTimestamp := ts.Timestamp.In(b.timezone).Format("2006-01-02T15:04:05.999")
-
+				b.logger.Printf("smhiGetForecasts: inserting forecasts for %s", name)
 				_, err = stmt.Exec(
 					fmt.Sprintf("%s-%s",
 						smhiTimestamp,
