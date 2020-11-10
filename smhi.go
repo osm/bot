@@ -2,12 +2,18 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"time"
 
 	"github.com/osm/irc"
 	"github.com/osm/smhi"
 )
+
+const SMHI_FORECAST_HASH_SELECT_SQL = `SELECT
+	hash
+FROM smhi_forecast
+WHERE
+	name = ? AND
+	timestamp >= current_timestamp;`
 
 const SMHI_FORECAST_CURRENT_SELECT_SQL = `SELECT
 	id,
@@ -38,13 +44,14 @@ const SMHI_FORECAST_CURRENT_SELECT_SQL = `SELECT
 FROM
 	smhi_forecast
 WHERE
-	name = $1 AND
+	name = ? AND
 	timestamp >= ?
 ORDER BY timestamp
 LIMIT 1`
 
 const SMHI_FORECAST_INSERT_SQL = `INSERT OR REPLACE INTO smhi_forecast (
 	id,
+	hash,
 	updated_at,
 	timestamp,
 	name,
@@ -69,11 +76,7 @@ const SMHI_FORECAST_INSERT_SQL = `INSERT OR REPLACE INTO smhi_forecast (
 	wind_direction,
 	wind_gust_speed,
 	wind_speed
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 // initSMHIDefaults sets default values for all settings.
 func (b *bot) initSMHIDefaults() {
@@ -96,12 +99,30 @@ func (b *bot) initSMHIDefaults() {
 // database. We'll always wipe
 func (b *bot) smhiGetForecasts() {
 	var fc *smhi.PointForecast
-	var err error
 
 	for {
 		// Iterate over the locations and fetch a forecast for the given
 		// coordinates.
 		for name, coord := range b.IRC.SMHIForecastLocations {
+			// But first of all, let's find all forecasts from now
+			// on and in the future and construct a map of them
+			// based by their hash. This will be used to determine
+			// whether or not we need to update the entry when we
+			// get new data from the SMHI API.
+			rows, err := b.query(SMHI_FORECAST_HASH_SELECT_SQL, name)
+			if err != nil {
+				b.logger.Printf("smhiGetForecasts: %v", err)
+				return
+			}
+			defer rows.Close()
+
+			var forecasts map[string]bool = make(map[string]bool)
+			for rows.Next() {
+				var hash string
+				rows.Scan(&hash)
+				forecasts[hash] = true
+			}
+
 			b.logger.Printf("smhiGetForecasts: fetching forecasts for %s", name)
 			if fc, err = smhi.GetPointForecast(coord.Longitude, coord.Latitude); err != nil {
 				b.logger.Printf("smhiGetForecasts: %v", err)
@@ -112,6 +133,20 @@ func (b *bot) smhiGetForecasts() {
 			// Iterate over the time series, which includes the actual
 			// forecast data.
 			for _, ts := range fc.TimeSeries {
+				// Construct timestamp, id and hash.
+				smhiTimestamp := ts.Timestamp.In(b.timezone).Format("2006-01-02T15:04:05.999")
+				id := fmt.Sprintf("%s-%s",
+					smhiTimestamp,
+					name,
+				)
+				hash := fmt.Sprintf("%s|%s", id, ts.Hash)
+
+				// The entry does alreayd exist in our
+				// database, so we don't need to do anything.
+				if inHash, _ := forecasts[hash]; inHash {
+					continue
+				}
+
 				stmt, err := b.prepare(SMHI_FORECAST_INSERT_SQL)
 				if err != nil {
 					b.logger.Printf("smhiGetForecasts: %v", err)
@@ -120,13 +155,10 @@ func (b *bot) smhiGetForecasts() {
 				}
 				defer stmt.Close()
 
-				smhiTimestamp := ts.Timestamp.In(b.timezone).Format("2006-01-02T15:04:05.999")
 				b.logger.Printf("smhiGetForecasts: inserting forecasts for %s, %s", name, smhiTimestamp)
 				_, err = stmt.Exec(
-					fmt.Sprintf("%s-%s",
-						smhiTimestamp,
-						name,
-					),
+					id,
+					hash,
 					newTimestamp(),
 					smhiTimestamp,
 					name,
@@ -157,14 +189,6 @@ func (b *bot) smhiGetForecasts() {
 					b.privmsg(b.DB.Err)
 					continue
 				}
-
-				// Since the bot might be running on a slow
-				// machine and we are using a SQLite which
-				// doesn't handle a lot of inserts very well
-				// (at least not on my RPI4), we'll sleep a
-				// while for each insert so that we can catch
-				// up.
-				time.Sleep(time.Duration(rand.Intn(5)) * time.Second)
 			}
 		}
 

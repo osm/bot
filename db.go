@@ -64,6 +64,7 @@ func getDatabaseRepository() repository.Source {
 			DROP INDEX smhi_forecast_name;
 			CREATE INDEX smhi_forecast_name_timestamp ON smhi_forecast(name, timestamp);
 		`,
+		17: "ALTER TABLE smhi_forecast ADD COLUMN hash TEXT",
 	})
 }
 
