@@ -40,7 +40,8 @@ const SMHI_FORECAST_CURRENT_SELECT_SQL = `SELECT
 	weather_symbol_description,
 	wind_direction,
 	wind_gust_speed,
-	wind_speed
+	wind_speed,
+	wind_speed_description
 FROM
 	smhi_forecast
 WHERE
@@ -75,8 +76,9 @@ const SMHI_FORECAST_INSERT_SQL = `INSERT OR REPLACE INTO smhi_forecast (
 	weather_symbol_description,
 	wind_direction,
 	wind_gust_speed,
-	wind_speed
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+	wind_speed,
+	wind_speed_description
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 // initSMHIDefaults sets default values for all settings.
 func (b *bot) initSMHIDefaults() {
@@ -183,6 +185,7 @@ func (b *bot) smhiGetForecasts() {
 					ts.WindDirection,
 					ts.WindGustSpeed,
 					ts.WindSpeed,
+					ts.WindSpeedDescription[b.IRC.SMHILanguage],
 				)
 				if err != nil {
 					b.logger.Printf("smhiGetForecasts: %v", err)
@@ -243,6 +246,7 @@ func (b *bot) smhiCommandHandler(m *irc.Message) {
 	var windDirection string
 	var windGustSpeed string
 	var windSpeed string
+	var windSpeedDescription string
 	err := b.queryRow(SMHI_FORECAST_CURRENT_SELECT_SQL, name, newTimestamp()).Scan(
 		&id,
 		&timestamp,
@@ -269,6 +273,7 @@ func (b *bot) smhiCommandHandler(m *irc.Message) {
 		&windDirection,
 		&windGustSpeed,
 		&windSpeed,
+		&windSpeedDescription,
 	)
 	if err != nil {
 		b.privmsg(b.IRC.SMHIMsgWeatherError)
@@ -302,5 +307,6 @@ func (b *bot) smhiCommandHandler(m *irc.Message) {
 		"<wind_direction>":                          windDirection,
 		"<wind_gust_speed>":                         windGustSpeed,
 		"<wind_speed>":                              windSpeed,
+		"<wind_speed_description>":                  windSpeedDescription,
 	})
 }

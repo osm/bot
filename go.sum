@@ -28,5 +28,7 @@ github.com/osm/smhi v1.0.3 h1:jcsRqj1ZbHQiFHtAWwxuFSjtxVXN8SKuweRwx/APMmc=
 github.com/osm/smhi v1.0.3/go.mod h1:sjqY6rs7BfU+lMFPAteh3ch/rPFhK08CTb8vCM86Xf4=
 github.com/osm/smhi v1.0.4 h1:wehrfd8swCDjfSBnOHnAYRA9THzRESc8mMuQhaAWFqA=
 github.com/osm/smhi v1.0.4/go.mod h1:sjqY6rs7BfU+lMFPAteh3ch/rPFhK08CTb8vCM86Xf4=
+github.com/osm/smhi v1.0.5 h1:D8IQDndSHQmdwuSwWqtdkLT27rjtNhBswaSg8QvgJKQ=
+github.com/osm/smhi v1.0.5/go.mod h1:sjqY6rs7BfU+lMFPAteh3ch/rPFhK08CTb8vCM86Xf4=
 github.com/robfig/cron/v3 v3.0.0 h1:kQ6Cb7aHOHTSzNVNEhmp8EcWKLb4CbiMW9h9VyIhO4E=
 github.com/robfig/cron/v3 v3.0.0/go.mod h1:eQICP3HwyT7UooqI/z+Ov+PtYAWygg1TEWWzGIFLtro=
