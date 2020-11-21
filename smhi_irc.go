@@ -226,7 +226,7 @@ func (b *bot) smhiCommandHandler(m *irc.Message) {
 		"<updated_at>":                           fc.UpdatedAt,
 		"<name>":                                 name,
 		"<air_pressure>":                         fc.AirPressure,
-		"<air_temperature>":                      fc.AirTemperature,
+		"<air_temperature>":                      fmtNumber(fc.AirTemperature, b.IRC.SMHILanguage),
 		"<horizontal_visibility>":                fc.HorizontalVisibility,
 		"<maximum_precipitation_intensity>":      fc.MaximumPrecipitationIntensity,
 		"<mean_precipitation_intensity>":         fc.MeanPrecipitationIntensity,
@@ -245,7 +245,7 @@ func (b *bot) smhiCommandHandler(m *irc.Message) {
 		"<weather_symbol_description>":              fc.WeatherSymbolDescription,
 		"<wind_direction>":                          fc.WindDirection,
 		"<wind_gust_speed>":                         fc.WindGustSpeed,
-		"<wind_speed>":                              fc.WindSpeed,
+		"<wind_speed>":                              fmtNumber(fc.WindSpeed, b.IRC.SMHILanguage),
 		"<wind_speed_description>":                  fc.WindSpeedDescription,
 	})
 }
