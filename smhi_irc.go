@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/osm/irc"
 )
@@ -60,7 +62,7 @@ func (b *bot) initSMHIDefaults() {
 
 // smhiForecastCmdRegexp extracts dates and time and splits them up into
 // groups.
-var smhiForecastCmdRegexp = regexp.MustCompile(`^(\d\d\d\d-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01]))?( )?((0[0-9]|1[0-9]|2[0-3])((:|.)([0-9]|[0-5][0-9]))?)?$`)
+var smhiForecastCmdRegexp = regexp.MustCompile(`^((tomorrow|imorgon)|(\d\d\d\d-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])))?( )?((0[0-9]|1[0-9]|2[0-3])((:|.)([0-9]|[0-5][0-9]))?)?$`)
 
 // smhiCommandHandler handles the commands issued from the IRC channel.
 func (b *bot) smhiCommandHandler(m *irc.Message) {
@@ -126,8 +128,10 @@ func (b *bot) smhiCommandHandler(m *irc.Message) {
 	// If we've got a match we use the submitted value, otherwise fallback
 	// to todays date.
 	var d string
-	if len(parts[1]) > 0 {
-		d = parts[1]
+	if len(parts[2]) > 0 {
+		d = newDateWithDuration(time.Hour * 24)
+	} else if len(parts[3]) > 0 {
+		d = parts[3]
 	} else {
 		d = newDate()
 	}
@@ -135,8 +139,8 @@ func (b *bot) smhiCommandHandler(m *irc.Message) {
 	// If we've got a match we use the submitted value, otherwise fallback
 	// to the current time.
 	var h int
-	if len(parts[6]) > 0 {
-		h = stringToInt(parts[6])
+	if len(parts[7]) > 0 {
+		h = stringToInt(parts[7])
 	} else {
 		h = stringToInt(newHour())
 	}
