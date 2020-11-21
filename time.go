@@ -19,6 +19,11 @@ func newDate() string {
 	return time.Now().Format("2006-01-02")
 }
 
+// newDateWithDuration returns the current date and adds the given duration.
+func newDateWithDuration(d time.Duration) string {
+	return time.Now().Add(d).Format("2006-01-02")
+}
+
 // newHour returns the current hour.
 func newHour() string {
 	return time.Now().Format("15")
