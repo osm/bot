@@ -109,6 +109,10 @@ func (b *bot) initIRC() {
 		b.IRC.client.Handle("PRIVMSG", b.urlCheckHandler)
 	}
 
+	if b.IRC.EnableURLMeta {
+		b.IRC.client.Handle("PRIVMSG", b.urlMetaHandler)
+	}
+
 	if b.IRC.EnableMarch {
 		b.initMarchDefaults()
 		b.IRC.client.Handle("PRIVMSG", b.marchHandler)

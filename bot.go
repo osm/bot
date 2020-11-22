@@ -207,6 +207,9 @@ type bot struct {
 		EnableURLCheck bool   `json:"enableURLCheck"`
 		URLCheckMsg    string `json:"urlCheckMsg"`
 
+		EnableURLMeta bool     `json:"enableURLMeta"`
+		URLMetaURLs   []string `json:"urlMetaURLs"`
+
 		EnableMarch      bool     `json:"enableMarch"`
 		MarchURL         string   `json:"marchURL"`
 		MarchCredentials string   `json:"marchCredentials"`
