@@ -46,9 +46,6 @@ func (b *bot) urlMetaHandler(m *irc.Message) {
 
 	// Extract the meta data and print it, if anything is returned.
 	md := mex.Extract(res.Body)
-	if md.Title != "" {
-		b.privmsg(md.Title)
-	}
 	if md.Description != "" {
 		b.privmsg(md.Description)
 	}
