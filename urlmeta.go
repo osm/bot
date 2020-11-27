@@ -8,6 +8,13 @@ import (
 	"github.com/osm/mex"
 )
 
+// initURLMetaDefaults sets default values for all settings.
+func (b *bot) initURLMetaDefaults() {
+	if b.IRC.URLMetaMsg == "" {
+		b.IRC.URLMetaMsg = "<description||title>"
+	}
+}
+
 func (b *bot) urlMetaHandler(m *irc.Message) {
 	a := b.parseAction(m).(*privmsgAction)
 
@@ -25,9 +32,26 @@ func (b *bot) urlMetaHandler(m *irc.Message) {
 	// Check whether or not the given URL matches any of the configured
 	// URLs that we want to fetch metadata for.
 	fetchMeta := false
+
+	// If no URLs are specified, we'll fetch meta for all found URLs.
+	if len(b.IRC.URLMetaURLs) == 0 {
+		fetchMeta = true
+	}
+
+	// But if we've got any URLs set, we'll make sure that only those are
+	// processed.
 	for _, u := range b.IRC.URLMetaURLs {
 		if strings.Contains(url, u) {
 			fetchMeta = true
+			break
+		}
+	}
+
+	// ... and last if the URL matches any of the ignore URLs we'll
+	// disallow further processing.
+	for _, u := range b.IRC.URLMetaIgnoreURLs {
+		if strings.Contains(url, u) {
+			fetchMeta = false
 			break
 		}
 	}
@@ -46,7 +70,24 @@ func (b *bot) urlMetaHandler(m *irc.Message) {
 
 	// Extract the meta data and print it, if anything is returned.
 	md := mex.Extract(res.Body)
-	if md.Description != "" {
-		b.privmsg(md.Description)
+
+	description := strings.TrimSpace(md.Description)
+	title := strings.TrimSpace(md.Title)
+
+	// No meta data found, return.
+	if description == "" && title == "" {
+		return
 	}
+
+	// Construct the "description or title"-field.
+	dort := description
+	if dort == "" {
+		dort = title
+	}
+
+	b.privmsgph(b.IRC.URLMetaMsg, map[string]string{
+		"<description>":        md.Description,
+		"<title>":              md.Title,
+		"<description||title>": dort,
+	})
 }

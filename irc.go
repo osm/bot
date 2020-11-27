@@ -110,6 +110,7 @@ func (b *bot) initIRC() {
 	}
 
 	if b.IRC.EnableURLMeta {
+		b.initURLMetaDefaults()
 		b.IRC.client.Handle("PRIVMSG", b.urlMetaHandler)
 	}
 
