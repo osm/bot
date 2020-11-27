@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"regexp"
 	"sort"
 	"strings"
@@ -61,7 +62,18 @@ func (b *bot) initSMHIDefaults() {
 
 // smhiForecastCmdRegexp extracts dates and time and splits them up into
 // groups.
-var smhiForecastCmdRegexp = regexp.MustCompile(`^([0-9a-zA-Z_\-\*,]+)( )?((tomorrow|imorgon)|(\d\d\d\d-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])))?( )?((0[0-9]|1[0-9]|2[0-3])((:|.)([0-9]|[0-5][0-9]))?)?$`)
+const smhiForecastCmdRegexpSpace = `( )?`
+const smhiForecastCmdRegexpNick = `([0-9a-zA-Z_\-\*,]+)`
+const smhiForecastCmdRegexpDate = `((tomorrow|imorgon)|(\d\d\d\d-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])))?`
+const smhiForecastCmdRegexpTime = `((0[0-9]|1[0-9]|2[0-3])((:|.)([0-9]|[0-5][0-9]))?)?`
+
+var smhiForecastCmdRegexp = regexp.MustCompile(fmt.Sprintf(`^%s%s%s%s%s$`,
+	smhiForecastCmdRegexpNick,
+	smhiForecastCmdRegexpSpace,
+	smhiForecastCmdRegexpDate,
+	smhiForecastCmdRegexpSpace,
+	smhiForecastCmdRegexpTime,
+))
 
 // smhiCommandHandler handles the commands issued from the IRC channel.
 func (b *bot) smhiCommandHandler(m *irc.Message) {
@@ -97,7 +109,7 @@ func (b *bot) smhiCommandHandler(m *irc.Message) {
 	// Split nicks on ,.
 	nicks := strings.Split(parts[1], ",")
 
-	// The * is a special character which means that were' printing info
+	// The * is a special character which means that were printing info
 	// on all locations we're fetching data for.
 	printAll := false
 	if len(nicks) == 1 && nicks[0] == "*" {
