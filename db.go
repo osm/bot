@@ -66,6 +66,16 @@ func getDatabaseRepository() repository.Source {
 		`,
 		17: "ALTER TABLE smhi_forecast ADD COLUMN hash TEXT",
 		18: "ALTER TABLE smhi_forecast ADD COLUMN wind_speed_description TEXT",
+		19: `
+			CREATE TABLE parcel_tracking (
+				id VARCHAR(36) NOT NULL PRIMARY KEY,
+				alias TEXT NOT NULL,
+				parcel_tracking_id TEXT NOT NULL,
+				inserted_at TEXT NOT NULL,
+				is_deleted BOOLEAN NOT NULL
+			);
+			CREATE INDEX parcel_tracking_alias_id ON parcel_tracking(alias, parcel_tracking_id);
+		`,
 	})
 }
 

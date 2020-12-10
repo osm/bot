@@ -277,6 +277,20 @@ type bot struct {
 			Latitude  float64 `json:"latitude"`
 			Longitude float64 `json:"longitude"`
 		}
+
+		EnableParcelTracking               bool   `json:"enableParcelTracking"`
+		ParcelTrackingPostNordAPIKey       string `json:"parcelTrackingPostNordAPIKey"`
+		ParcelTrackingLocale               string `json:"parcelTrackingLocale"`
+		ParcelTrackingMsgInfo              string `json:"parcelTrackingMsgInfo"`
+		ParcelTrackingMsgAliasRemoved      string `json:"parcelTrackingMsgAliasRemoved"`
+		ParcelTrackingMsgAliasDoesNotExist string `json:"parcelTrackingMsgAliasDoesNotExist"`
+		ParcelTrackingErrNoData            string `json:"parcelTrackingErrNoData"`
+		ParcelTrackingErrDuplicateAlias    string `json:"parcelTrackingErrDuplicateAlias"`
+		ParcelTrackingCmd                  string `json:"parcelTrackingCmd"`
+		ParcelTrackingCmdAdd               string `json:"parcelTrackingCmdInfo"`
+		ParcelTrackingCmdRemove            string `json:"parcelTrackingCmdInfo"`
+		ParcelTrackingCmdInfo              string `json:"parcelTrackingCmdInfo"`
+		ParcelTrackingCmdFull              string `json:"parcelTrackingCmdFull"`
 	}
 }
 

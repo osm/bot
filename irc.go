@@ -163,6 +163,11 @@ func (b *bot) initIRC() {
 		b.IRC.client.Handle("PRIVMSG", b.dictionaryHandler)
 	}
 
+	if b.IRC.EnableParcelTracking {
+		b.initParcelTrackingDefaults()
+		b.IRC.client.Handle("PRIVMSG", b.parcelTrackingCommandHandler)
+	}
+
 	// This goroutine handles the connection to the IRC server. The IRC
 	// library will automatically try to reconnect if the connection dies
 	// for some reason.
