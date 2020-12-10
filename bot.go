@@ -287,8 +287,8 @@ type bot struct {
 		ParcelTrackingErrNoData            string `json:"parcelTrackingErrNoData"`
 		ParcelTrackingErrDuplicateAlias    string `json:"parcelTrackingErrDuplicateAlias"`
 		ParcelTrackingCmd                  string `json:"parcelTrackingCmd"`
-		ParcelTrackingCmdAdd               string `json:"parcelTrackingCmdInfo"`
-		ParcelTrackingCmdRemove            string `json:"parcelTrackingCmdInfo"`
+		ParcelTrackingCmdAdd               string `json:"parcelTrackingCmdAdd"`
+		ParcelTrackingCmdRemove            string `json:"parcelTrackingCmdRemove"`
 		ParcelTrackingCmdInfo              string `json:"parcelTrackingCmdInfo"`
 		ParcelTrackingCmdFull              string `json:"parcelTrackingCmdFull"`
 	}
