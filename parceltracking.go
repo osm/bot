@@ -15,7 +15,7 @@ func (b *bot) initParcelTrackingDefaults() {
 		b.IRC.ParcelTrackingLocale = "sv"
 	}
 	if b.IRC.ParcelTrackingMsgInfo == "" {
-		b.IRC.ParcelTrackingMsgInfo = "<consignor_name>, <event_date> <event_time>, <location_display_name>, <event_description>"
+		b.IRC.ParcelTrackingMsgInfo = "<consignor_name>, <event_date> <event_time>, <location_display_name>, <event_description> estimated time of arrival: <estimated_time_of_arrival_date> <estimated_time_of_arrival_time>"
 	}
 	if b.IRC.ParcelTrackingMsgAliasRemoved == "" {
 		b.IRC.ParcelTrackingMsgAliasRemoved = "<alias> removed"
@@ -181,11 +181,13 @@ func (b *bot) parcelTrackingFull(a *privmsgAction) {
 	var fullMsg string
 	for _, e := range events {
 		data := map[string]string{
-			"<consignor_name>":        e.consignorName,
-			"<event_date>":            e.eventDate,
-			"<event_time>":            e.eventTime,
-			"<location_display_name>": e.locationDisplayName,
-			"<event_description>":     e.eventDescription,
+			"<consignor_name>":                 e.consignorName,
+			"<event_date>":                     e.eventDate,
+			"<event_time>":                     e.eventTime,
+			"<location_display_name>":          e.locationDisplayName,
+			"<event_description>":              e.eventDescription,
+			"<estimated_time_of_arrival_date>": e.estimatedTimeOfArrivalDate,
+			"<estimated_time_of_arrival_time>": e.estimatedTimeOfArrivalTime,
 		}
 
 		msg := b.IRC.ParcelTrackingMsgInfo
@@ -269,11 +271,13 @@ func (b *bot) parcelTrackingAliasExists(alias string) string {
 // sendParcelTrackingInfo sends the given event to the channel.
 func (b *bot) sendParcelTrackingInfo(e *postNordEvent) {
 	b.privmsgph(b.IRC.ParcelTrackingMsgInfo, map[string]string{
-		"<consignor_name>":        e.consignorName,
-		"<event_date>":            e.eventDate,
-		"<event_time>":            e.eventTime,
-		"<location_display_name>": e.locationDisplayName,
-		"<event_description>":     e.eventDescription,
+		"<consignor_name>":                 e.consignorName,
+		"<event_date>":                     e.eventDate,
+		"<event_time>":                     e.eventTime,
+		"<location_display_name>":          e.locationDisplayName,
+		"<event_description>":              e.eventDescription,
+		"<estimated_time_of_arrival_date>": e.estimatedTimeOfArrivalDate,
+		"<estimated_time_of_arrival_time>": e.estimatedTimeOfArrivalTime,
 	})
 }
 
@@ -328,11 +332,13 @@ func (b *bot) fetchPostNordInfo(id string) []postNordEvent {
 		for _, i := range s.Items {
 			for _, e := range i.Events {
 				events = append(events, postNordEvent{
-					consignorName:       s.Consignor.Name,
-					eventDate:           e.EventTime[0:10],
-					eventTime:           e.EventTime[11:16],
-					locationDisplayName: e.Location.DisplayName,
-					eventDescription:    e.EventDescription,
+					consignorName:              s.Consignor.Name,
+					eventDate:                  e.EventTime[0:10],
+					eventTime:                  e.EventTime[11:16],
+					locationDisplayName:        e.Location.DisplayName,
+					eventDescription:           e.EventDescription,
+					estimatedTimeOfArrivalDate: i.EstimatedTimeOfArrival[0:10],
+					estimatedTimeOfArrivalTime: i.EstimatedTimeOfArrival[11:16],
 				})
 			}
 		}
@@ -344,9 +350,11 @@ func (b *bot) fetchPostNordInfo(id string) []postNordEvent {
 // postNordEvent simplified data structure for the "important" PostNord event
 // data.
 type postNordEvent struct {
-	consignorName       string
-	eventDate           string
-	eventTime           string
-	locationDisplayName string
-	eventDescription    string
+	consignorName              string
+	eventDate                  string
+	eventTime                  string
+	locationDisplayName        string
+	eventDescription           string
+	estimatedTimeOfArrivalDate string
+	estimatedTimeOfArrivalTime string
 }
