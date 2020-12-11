@@ -188,6 +188,10 @@ func (b *bot) parcelTrackingFull(a *privmsgAction) {
 			"<event_description>":              e.eventDescription,
 			"<estimated_time_of_arrival_date>": e.estimatedTimeOfArrivalDate,
 			"<estimated_time_of_arrival_time>": e.estimatedTimeOfArrivalTime,
+			"<drop_off_date>":                  e.dropOffDate,
+			"<drop_off_time>":                  e.dropOffTime,
+			"<estimation_or_drop_off_date>":    e.estimationOrDropOffDate,
+			"<estimation_or_drop_off_time>":    e.estimationOrDropOffTime,
 		}
 
 		msg := b.IRC.ParcelTrackingMsgInfo
@@ -278,6 +282,10 @@ func (b *bot) sendParcelTrackingInfo(e *postNordEvent) {
 		"<event_description>":              e.eventDescription,
 		"<estimated_time_of_arrival_date>": e.estimatedTimeOfArrivalDate,
 		"<estimated_time_of_arrival_time>": e.estimatedTimeOfArrivalTime,
+		"<drop_off_date>":                  e.dropOffDate,
+		"<drop_off_time>":                  e.dropOffTime,
+		"<estimation_or_drop_off_date>":    e.estimationOrDropOffDate,
+		"<estimation_or_drop_off_time>":    e.estimationOrDropOffTime,
 	})
 }
 
@@ -331,14 +339,48 @@ func (b *bot) fetchPostNordInfo(id string) []postNordEvent {
 	for _, s := range tir.TrackingInformationResponse.Shipments {
 		for _, i := range s.Items {
 			for _, e := range i.Events {
+				eventDate := ""
+				eventTime := ""
+				if len(e.EventTime) >= 16 {
+					eventDate = e.EventTime[0:10]
+					eventTime = e.EventTime[11:16]
+				}
+
+				estimatedTimeOfArrivalDate := ""
+				estimatedTimeOfArrivalTime := ""
+				if len(i.EstimatedTimeOfArrival) >= 16 {
+					estimatedTimeOfArrivalDate = i.EstimatedTimeOfArrival[0:10]
+					estimatedTimeOfArrivalTime = i.EstimatedTimeOfArrival[11:16]
+				}
+
+				dropOffDate := ""
+				dropOffTime := ""
+				if len(i.DropOffDate) >= 16 {
+					dropOffDate = i.DropOffDate[0:10]
+					dropOffTime = i.DropOffDate[11:16]
+				}
+
+				estimationOrDropOffDate := estimatedTimeOfArrivalDate
+				estimationOrDropOffTime := estimatedTimeOfArrivalTime
+				if estimationOrDropOffDate == "" {
+					estimationOrDropOffDate = dropOffDate
+				}
+				if estimationOrDropOffTime == "" {
+					estimationOrDropOffTime = dropOffTime
+				}
+
 				events = append(events, postNordEvent{
 					consignorName:              s.Consignor.Name,
-					eventDate:                  e.EventTime[0:10],
-					eventTime:                  e.EventTime[11:16],
+					eventDate:                  eventDate,
+					eventTime:                  eventTime,
 					locationDisplayName:        e.Location.DisplayName,
 					eventDescription:           e.EventDescription,
-					estimatedTimeOfArrivalDate: i.EstimatedTimeOfArrival[0:10],
-					estimatedTimeOfArrivalTime: i.EstimatedTimeOfArrival[11:16],
+					estimatedTimeOfArrivalDate: estimatedTimeOfArrivalDate,
+					estimatedTimeOfArrivalTime: estimatedTimeOfArrivalTime,
+					dropOffDate:                dropOffDate,
+					dropOffTime:                dropOffTime,
+					estimationOrDropOffDate:    estimationOrDropOffDate,
+					estimationOrDropOffTime:    estimationOrDropOffTime,
 				})
 			}
 		}
@@ -357,4 +399,8 @@ type postNordEvent struct {
 	eventDescription           string
 	estimatedTimeOfArrivalDate string
 	estimatedTimeOfArrivalTime string
+	dropOffDate                string
+	dropOffTime                string
+	estimationOrDropOffDate    string
+	estimationOrDropOffTime    string
 }
