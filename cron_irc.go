@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/osm/irc"
-	"github.com/osm/pastebin"
 )
 
 // cronAddLimitRegexp contains the regular expression used to add cron jobs
@@ -332,20 +331,7 @@ func (b *bot) cronList() {
 	}
 
 	if target == "pastebin" {
-		if b.IRC.PastebinAPIKey == "" {
-			b.logger.Printf("cronList: you need to set a pastebin api key\n")
-			return
-		}
-		pb := pastebin.New(b.IRC.PastebinAPIKey)
-
-		var url string
-		url, err = pb.NewPaste(pastebinCode, "cron job", pastebin.Unlisted, pastebin.TenMinutes)
-		if err != nil {
-			b.logger.Printf("cronList: pastebin err: %v\n", err)
-			return
-		}
-
-		b.privmsg(url)
+		b.newPaste("cron job", pastebinCode)
 	}
 }
 
