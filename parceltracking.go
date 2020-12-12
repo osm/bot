@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/osm/irc"
-	"github.com/osm/pastebin"
 	"github.com/osm/postnord"
 )
 
@@ -44,6 +43,9 @@ func (b *bot) initParcelTrackingDefaults() {
 	if b.IRC.ParcelTrackingCmdFull == "" {
 		b.IRC.ParcelTrackingCmdFull = "full"
 	}
+	if b.IRC.ParcelTrackingCmdList == "" {
+		b.IRC.ParcelTrackingCmdList = "list"
+	}
 }
 
 // parcelTrackingCommandHandler handles the commands issued from the IRC channel.
@@ -66,7 +68,7 @@ func (b *bot) parcelTrackingCommandHandler(m *irc.Message) {
 	}
 
 	// Not enough args, return.
-	if len(a.args) < 2 {
+	if len(a.args) < 1 {
 		return
 	}
 
@@ -80,6 +82,8 @@ func (b *bot) parcelTrackingCommandHandler(m *irc.Message) {
 		b.parcelTrackingInfo(a)
 	} else if subCmd == b.IRC.ParcelTrackingCmdFull {
 		b.parcelTrackingFull(a)
+	} else if subCmd == b.IRC.ParcelTrackingCmdList {
+		b.parcelTrackingList(a)
 	}
 }
 
@@ -113,7 +117,7 @@ func (b *bot) parcelTrackingAdd(a *privmsgAction) {
 	}
 
 	// Store the id and alias.
-	b.insertParcelTracking(alias, id)
+	b.insertParcelTracking(alias, id, a.nick)
 
 	// Print the latest info
 	b.sendParcelTrackingInfo(&events[len(events)-1])
@@ -205,23 +209,42 @@ func (b *bot) parcelTrackingFull(a *privmsgAction) {
 	// Remove the trailing new line.
 	fullMsg = fullMsg[0 : len(fullMsg)-1]
 
-	// Make sure that we have the pastebin API key.
-	if b.IRC.PastebinAPIKey == "" {
-		b.logger.Printf("parcelTracking: you need to set a pastebin api key\n")
-		return
-	}
-	pb := pastebin.New(b.IRC.PastebinAPIKey)
+	// Upload to pastebin.
+	b.newPaste(a.args[0], fullMsg)
+}
 
-	// Upload it to pastebin and print the URL.
-	var url string
-	url, err := pb.NewPaste(fullMsg, a.args[0], pastebin.Unlisted, pastebin.TenMinutes)
+// parcelTrackingList lists all stored aliases
+func (b *bot) parcelTrackingList(a *privmsgAction) {
+	// Select all non deleted parcel trackings.
+	rows, err := b.query(`
+		SELECT alias, parcel_tracking_id, nick
+		FROM parcel_tracking
+		WHERE is_deleted = 0
+		ORDER BY inserted_at DESC
+	`)
 	if err != nil {
-		b.logger.Printf("parcelTracking: pastebin err: %v\n", err)
+		b.logger.Printf("parcelTracking: %v", err)
 		return
 	}
+	defer rows.Close()
 
-	b.privmsg(url)
+	// Concat all aliases
+	var content string
+	for rows.Next() {
+		var alias, id, nick string
+		rows.Scan(&alias, &id, &nick)
+		if nick == "" {
+			content = fmt.Sprintf("%s%s -> %s\n", content, alias, id)
+		} else {
+			content = fmt.Sprintf("%s%s: %s -> %s\n", content, nick, alias, id)
+		}
+	}
 
+	// Trim traling new line.
+	content = content[0 : len(content)-1]
+
+	// Upload to pastebin.
+	b.newPaste("", content)
 }
 
 // parcelTrackingInfo fetches tracking info for the given id.
@@ -257,7 +280,7 @@ func (b *bot) fetchParcelTrackingInfo(a *privmsgAction) []postNordEvent {
 	}
 	if alias != "" && existingID == "" && b.parcelTrackingAliasExists(alias) == "" {
 		// Store the id and alias.
-		b.insertParcelTracking(alias, id)
+		b.insertParcelTracking(alias, id, a.nick)
 	}
 
 	return events
@@ -290,14 +313,16 @@ func (b *bot) sendParcelTrackingInfo(e *postNordEvent) {
 }
 
 // insertParcelTracking adds an entry to the parcel_tracking table.
-func (b *bot) insertParcelTracking(alias, id string) {
+func (b *bot) insertParcelTracking(alias, id, nick string) {
 	stmt, err := b.prepare(`INSERT INTO parcel_tracking (
 		id,
 		alias,
 		parcel_tracking_id,
+		nick,
 		inserted_at,
 		is_deleted
 	) VALUES (
+		?,
 		?,
 		?,
 		?,
@@ -311,7 +336,7 @@ func (b *bot) insertParcelTracking(alias, id string) {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(newUUID(), alias, id, newTimestamp(), false)
+	_, err = stmt.Exec(newUUID(), alias, id, nick, newTimestamp(), false)
 	if err != nil {
 		b.logger.Printf("parcelTracking: %v", err)
 		b.privmsg(b.DB.Err)

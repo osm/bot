@@ -291,6 +291,7 @@ type bot struct {
 		ParcelTrackingCmdRemove            string `json:"parcelTrackingCmdRemove"`
 		ParcelTrackingCmdInfo              string `json:"parcelTrackingCmdInfo"`
 		ParcelTrackingCmdFull              string `json:"parcelTrackingCmdFull"`
+		ParcelTrackingCmdList              string `json:"parcelTrackingCmdList"`
 	}
 }
 

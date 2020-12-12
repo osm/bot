@@ -76,6 +76,7 @@ func getDatabaseRepository() repository.Source {
 			);
 			CREATE INDEX parcel_tracking_alias_id ON parcel_tracking(alias, parcel_tracking_id);
 		`,
+		20: `ALTER TABLE parcel_tracking ADD COLUMN nick TEXT;`,
 	})
 }
 
