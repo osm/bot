@@ -240,6 +240,11 @@ func (b *bot) parcelTrackingList(a *privmsgAction) {
 		}
 	}
 
+	// No parcels, return.
+	if len(content) == 0 {
+		return
+	}
+
 	// Trim traling new line.
 	content = content[0 : len(content)-1]
 
