@@ -117,7 +117,7 @@ func (cj *cronJob) Run() {
 	cj.mu.Unlock()
 
 	// Increment the exec_count in the database as well.
-	stmt, err := cj.bot.prepare("UPDATE cron SET exec_count = ? WHERE id = ?")
+	stmt, err := cj.bot.prepare("UPDATE cron SET exec_count = $1 WHERE id = $2")
 	if err != nil {
 		cj.bot.logger.Printf("cronJobRun: %w", err)
 		return

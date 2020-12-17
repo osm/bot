@@ -3,6 +3,7 @@ module github.com/osm/bot
 go 1.13
 
 require (
+	github.com/lib/pq v1.9.0
 	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/osm/irc v1.1.1
 	github.com/osm/jsonc v1.0.0

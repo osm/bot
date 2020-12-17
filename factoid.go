@@ -182,7 +182,7 @@ func (b *bot) factoidHandleDelete(id string) {
 	// Prepare the UPDATE statement. We are not actually deleting the
 	// factoid, we'll just hide it so that it can be restored if we have
 	// someone deleting things we want to keep.
-	stmt, err := b.prepare("UPDATE factoid SET is_deleted = 1 WHERE id = ?")
+	stmt, err := b.prepare("UPDATE factoid SET is_deleted = true WHERE id = $1")
 	if err != nil {
 		b.logger.Printf("factoidHandleDelete: %v", err)
 		b.privmsg(b.DB.Err)
@@ -207,7 +207,7 @@ func (b *bot) factoidHandleDelete(id string) {
 // as a private message instead so we don't flood the channel.
 func (b *bot) factoidHandleSnoop(trigger string) {
 	// Get all the relevant factoid information
-	rows, err := b.query("SELECT id, author, timestamp, reply FROM factoid WHERE trigger = ? AND is_deleted = 0", trigger)
+	rows, err := b.query("SELECT id, author, timestamp, reply FROM factoid WHERE trigger = $1 AND is_deleted = false", trigger)
 	if err != nil {
 		b.logger.Printf("factoidHandleSnoop: %v", err)
 		b.privmsg(b.DB.Err)
@@ -278,7 +278,7 @@ func (b *bot) factoidHandleSnoop(trigger string) {
 func (b *bot) factoidHandleCount(trigger string) {
 	// Get the count for the given trigger.
 	var count int
-	err := b.queryRow("SELECT COUNT(*) FROM factoid WHERE trigger = ? AND is_deleted = 0", trigger).Scan(&count)
+	err := b.queryRow("SELECT COUNT(*) FROM factoid WHERE trigger = $1 AND is_deleted = false", trigger).Scan(&count)
 	if err != nil && err != sql.ErrNoRows {
 		b.logger.Printf("factoidHandleCount: %w", err)
 		b.privmsg(b.DB.Err)
@@ -295,7 +295,7 @@ func (b *bot) factoidHandleCount(trigger string) {
 // factoidHandleInsertFact inserts a new factoid into the database.
 func (b *bot) factoidHandleInsertFact(author, trigger, reply string) {
 	// Prepare the INSERT statement.
-	stmt, err := b.prepare("INSERT INTO factoid (id, timestamp, author, trigger, reply, is_deleted) VALUES(?, ?, ?, ?, ?, 0)")
+	stmt, err := b.prepare("INSERT INTO factoid (id, timestamp, author, trigger, reply, is_deleted) VALUES($1, $2, $3, $4, $5, false)")
 	if err != nil {
 		b.logger.Printf("factoidHandleInsertFact: %v", err)
 		b.privmsg(b.DB.Err)
@@ -320,7 +320,7 @@ func (b *bot) factoidHandleInsertFact(author, trigger, reply string) {
 // channel.
 func (b *bot) factoidHandleFact(a *privmsgAction) {
 	// Let's check whether the message is a known trigger.
-	rows, err := b.query("SELECT reply, rate FROM factoid WHERE trigger = ? AND is_deleted = 0", a.msg)
+	rows, err := b.query("SELECT reply, rate FROM factoid WHERE trigger = $1 AND is_deleted = false", a.msg)
 	if err != nil {
 		b.logger.Printf("factoidHandleFact: %v", err)
 		b.privmsg(b.DB.Err)

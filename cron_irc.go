@@ -91,7 +91,7 @@ func (b *bot) initCronDefaults() {
 // initCron initializes the cron jobs.
 func (b *bot) initCron() {
 	// Fetch all active cron jobs from the database.
-	rows, err := b.query("SELECT id, expression, message, is_limited, exec_count, exec_limit FROM cron WHERE is_deleted = 0")
+	rows, err := b.query("SELECT id, expression, message, is_limited, exec_count, exec_limit FROM cron WHERE is_deleted = false")
 	if err != nil {
 		b.logger.Printf("initCron: %w", err)
 		b.privmsg(b.DB.Err)
@@ -187,7 +187,7 @@ func (b *bot) cronAdd(expression, message string) {
 	}
 
 	// Prepare the INSERT statement.
-	stmt, err := b.prepare("INSERT INTO cron (id, expression, message, is_limited, exec_limit, is_deleted, inserted_at) VALUES(?, ?, ?, ?, ?, 0, ?)")
+	stmt, err := b.prepare("INSERT INTO cron (id, expression, message, is_limited, exec_limit, is_deleted, inserted_at) VALUES($1, $2, $3, $4, $5, false, $6)")
 	if err != nil {
 		b.logger.Printf("cronAdd: %w", err)
 		b.privmsg(b.DB.Err)
@@ -224,7 +224,7 @@ func (b *bot) cronDelete(id string) {
 		return
 	}
 
-	stmt, err := b.prepare("UPDATE cron SET is_deleted = 1 WHERE id = ?")
+	stmt, err := b.prepare("UPDATE cron SET is_deleted = true WHERE id = $1")
 	if err != nil {
 		b.logger.Printf("cronDelete: %w", err)
 		b.privmsg(b.DB.Err)
@@ -249,7 +249,7 @@ func (b *bot) cronDelete(id string) {
 
 // cronList lists all the cron jobs.
 func (b *bot) cronList() {
-	rows, err := b.query("SELECT id, expression, message, is_limited, exec_count, exec_limit FROM cron WHERE is_deleted = 0")
+	rows, err := b.query("SELECT id, expression, message, is_limited, exec_count, exec_limit FROM cron WHERE is_deleted = false")
 	if err != nil {
 		b.logger.Printf("cronList: %w", err)
 		b.privmsg(b.DB.Err)
@@ -350,7 +350,7 @@ func (b *bot) cronUpdate(id, expression, message string) {
 	}
 
 	// Prepare the update query.
-	stmt, err := b.prepare("UPDATE cron SET expression = ?, message = ?, updated_at = ? WHERE id = ? AND is_deleted = 0")
+	stmt, err := b.prepare("UPDATE cron SET expression = $1, message = $2, updated_at = $3 WHERE id = $4 AND is_deleted = false")
 	if err != nil {
 		b.logger.Printf("cronUpdate: %w", err)
 		b.privmsg(b.DB.Err)

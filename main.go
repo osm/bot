@@ -11,6 +11,7 @@ import (
 func main() {
 	configPath := flag.String("config", "", "config file path")
 	version := flag.Bool("version", false, "display current version")
+	schemaOnly := flag.Bool("init-schema-only", false, "init db schema and exit")
 	flag.Parse()
 
 	if *version {
@@ -28,6 +29,11 @@ func main() {
 	if bot, err = newBotFromConfig(*configPath); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
+	}
+
+	if *schemaOnly == true {
+		bot.initDB()
+		os.Exit(0)
 	}
 
 	if err = bot.start(); err != nil {

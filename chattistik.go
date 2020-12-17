@@ -66,7 +66,11 @@ func (b *bot) chattistikHandler(m *irc.Message) {
 // chattistik compiles a map of the nick and word count for all nicks that has
 // been active during the from and to date range.
 func (b *bot) chattistik(date, word string) {
-	rows, err := b.query("SELECT message, nick FROM log WHERE substr(timestamp, 0, 11) = ?", date)
+	query := "SELECT message, nick FROM log WHERE substr(timestamp, 0, 11) = $1"
+	if b.DB.Engine == "postgres" {
+		query = "SELECT message, nick FROM log WHERE substr(timestamp::text, 0, 11) = $1"
+	}
+	rows, err := b.query(query, date)
 	if err != nil {
 		b.logger.Printf("chattistik: %v", err)
 		return

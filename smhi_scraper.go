@@ -11,10 +11,10 @@ const SMHI_FORECAST_HASH_SELECT_SQL = `SELECT
 	hash
 FROM smhi_forecast
 WHERE
-	name = ? AND
+	name = $1 AND
 	timestamp >= current_timestamp;`
 
-const SMHI_FORECAST_INSERT_SQL = `INSERT OR REPLACE INTO smhi_forecast (
+const SMHI_FORECAST_INSERT_SQL_SQLITE = `INSERT OR REPLACE INTO smhi_forecast (
 	id,
 	hash,
 	updated_at,
@@ -43,6 +43,94 @@ const SMHI_FORECAST_INSERT_SQL = `INSERT OR REPLACE INTO smhi_forecast (
 	wind_speed,
 	wind_speed_description
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+const SMHI_FORECAST_INSERT_SQL_POSTGRES = `INSERT INTO smhi_forecast (
+	id,
+	hash,
+	updated_at,
+	timestamp,
+	name,
+	air_pressure,
+	air_temperature,
+	horizontal_visibility,
+	maximum_precipitation_intensity,
+	mean_precipitation_intensity,
+	mean_value_of_high_level_cloud_cover,
+	mean_value_of_low_level_cloud_cover,
+	mean_value_of_medium_level_cloud_cover,
+	mean_value_of_total_cloud_cover,
+	median_precipitation_intensity,
+	minimum_precipitation_intensity,
+	percent_of_precipitation_in_frozen_form,
+	precipitation_category,
+	precipitation_category_description,
+	relative_humidity,
+	thunder_probability,
+	weather_symbol,
+	weather_symbol_description,
+	wind_direction,
+	wind_gust_speed,
+	wind_speed,
+	wind_speed_description
+) VALUES (
+	$1,
+	$2,
+	$3,
+	$4,
+	$5,
+	$6,
+	$7,
+	$8,
+	$9,
+	$10,
+	$11,
+	$12,
+	$13,
+	$14,
+	$15,
+	$16,
+	$17,
+	$18,
+	$19,
+	$20,
+	$21,
+	$22,
+	$23,
+	$24,
+	$25,
+	$26,
+	$27
+) ON CONFLICT (id)
+DO UPDATE
+SET
+	id = EXCLUDED.id,
+	hash = EXCLUDED.hash,
+	updated_at = EXCLUDED.updated_at,
+	timestamp = EXCLUDED.timestamp,
+	name = EXCLUDED.name,
+	air_pressure = EXCLUDED.air_pressure,
+	air_temperature = EXCLUDED.air_temperature,
+	horizontal_visibility = EXCLUDED.horizontal_visibility,
+	maximum_precipitation_intensity = EXCLUDED.maximum_precipitation_intensity,
+	mean_precipitation_intensity = EXCLUDED.mean_precipitation_intensity,
+	mean_value_of_high_level_cloud_cover = EXCLUDED.mean_value_of_high_level_cloud_cover,
+	mean_value_of_low_level_cloud_cover = EXCLUDED.mean_value_of_low_level_cloud_cover,
+	mean_value_of_medium_level_cloud_cover = EXCLUDED.mean_value_of_medium_level_cloud_cover,
+	mean_value_of_total_cloud_cover = EXCLUDED.mean_value_of_total_cloud_cover,
+	median_precipitation_intensity = EXCLUDED.median_precipitation_intensity,
+	minimum_precipitation_intensity = EXCLUDED.minimum_precipitation_intensity,
+	percent_of_precipitation_in_frozen_form = EXCLUDED.percent_of_precipitation_in_frozen_form,
+	precipitation_category = EXCLUDED.precipitation_category,
+	precipitation_category_description = EXCLUDED.precipitation_category_description,
+	relative_humidity = EXCLUDED.relative_humidity,
+	thunder_probability = EXCLUDED.thunder_probability,
+	weather_symbol = EXCLUDED.weather_symbol,
+	weather_symbol_description = EXCLUDED.weather_symbol_description,
+	wind_direction = EXCLUDED.wind_direction,
+	wind_gust_speed = EXCLUDED.wind_gust_speed,
+	wind_speed = EXCLUDED.wind_speed,
+	wind_speed_description = EXCLUDED.wind_speed_description
+`
 
 // smhiGetForecasts runs once every hour and fetches new forecasts for all the
 // locations that is defined in the config. The forecast is saved to the
@@ -102,7 +190,12 @@ func (b *bot) smhiGetForecasts() {
 					continue
 				}
 
-				stmt, err := b.prepare(SMHI_FORECAST_INSERT_SQL)
+				insertQuery := SMHI_FORECAST_INSERT_SQL_SQLITE
+				if b.DB.Engine == "postgres" {
+					insertQuery = SMHI_FORECAST_INSERT_SQL_POSTGRES
+				}
+
+				stmt, err := b.prepare(insertQuery)
 				if err != nil {
 					b.logger.Printf("smhiGetForecasts: %v", err)
 					b.privmsg(b.DB.Err)

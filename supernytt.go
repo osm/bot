@@ -87,7 +87,7 @@ func (b *bot) getSupernyttData() []SNEntry {
 // hasSNExternalID checks whether or not the external id exists.
 func (b *bot) hasSNExternalID(externalID string) bool {
 	var exists string
-	err := b.queryRow("SELECT 1 FROM supernytt WHERE external_id = ?", externalID).Scan(&exists)
+	err := b.queryRow("SELECT 1 FROM supernytt WHERE external_id = $1", externalID).Scan(&exists)
 	if err != nil {
 		return false
 	}
@@ -96,7 +96,7 @@ func (b *bot) hasSNExternalID(externalID string) bool {
 
 // insertSNEntry inserts a supernytt entry into the database.
 func (b *bot) insertSNEntry(e *SNEntry) {
-	stmt, err := b.prepare("INSERT INTO supernytt (id, external_id, title, content, external_created, inserted_at) VALUES(?, ?, ?, ?, ?, ?);")
+	stmt, err := b.prepare("INSERT INTO supernytt (id, external_id, title, content, external_created, inserted_at) VALUES($1, $2, $3, $4, $5, $6);")
 	if err != nil {
 		b.logger.Printf("insertSNEntry: %w", err)
 		return

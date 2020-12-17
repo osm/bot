@@ -15,7 +15,7 @@ func (b *bot) loggingHandler(m *irc.Message) {
 		return
 	}
 
-	stmt, err := b.prepare("INSERT INTO log (id, timestamp, nick, message) VALUES(?, ?, ?, ?)")
+	stmt, err := b.prepare(`INSERT INTO log (id, timestamp, nick, message) VALUES($1, $2, $3, $4);`)
 	if err != nil {
 		b.logger.Printf("loggingHandler: %v", err)
 		b.privmsg(b.DB.Err)

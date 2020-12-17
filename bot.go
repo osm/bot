@@ -44,6 +44,11 @@ type bot struct {
 	DB struct {
 		client *sql.DB
 
+		// Engine contains the engine type of the database, valid
+		// values are empty, sqlite or postgres. Empty defaults to
+		// sqlite to keep backwards compatability.
+		Engine string `json:"engine"`
+
 		// Path should point to the location of the SQLite database
 		// file.
 		Path string `json:"path"`

@@ -37,7 +37,7 @@ func (b *bot) urlCheckHandler(m *irc.Message) {
 	}
 
 	var nick, timestamp string
-	err := b.queryRow("SELECT nick, timestamp FROM url_check WHERE url = ?", url).Scan(&nick, &timestamp)
+	err := b.queryRow("SELECT nick, timestamp FROM url_check WHERE url = $1", url).Scan(&nick, &timestamp)
 	if err != nil && err != sql.ErrNoRows {
 		b.logger.Printf("urlCheckHandler: %v", err)
 		b.privmsg(b.DB.Err)
@@ -53,7 +53,7 @@ func (b *bot) urlCheckHandler(m *irc.Message) {
 		return
 	}
 
-	stmt, err := b.prepare("INSERT INTO url_check (id, timestamp, nick, url) VALUES(?, ?, ?, ?)")
+	stmt, err := b.prepare("INSERT INTO url_check (id, timestamp, nick, url) VALUES($1, $2, $3, $4)")
 	if err != nil {
 		b.logger.Printf("urlCheckHandler: %v", err)
 		b.privmsg(b.DB.Err)

@@ -324,7 +324,7 @@ func (qr *quizRound) answer(n, a string) {
 	qr.stats[n]++
 
 	// Also, add stats to the database.
-	stmt, err := qr.bot.prepare("INSERT INTO quiz_stat (id, nick, quiz_round_id, quiz_name, category, question, answer, inserted_at) VALUES(?, ?, ?, ?, ?, ?, ?, ?)")
+	stmt, err := qr.bot.prepare("INSERT INTO quiz_stat (id, nick, quiz_round_id, quiz_name, category, question, answer, inserted_at) VALUES($1, $2, $3, $4, $5, $6, $7, $8)")
 	if err != nil {
 		qr.bot.logger.Printf("quizAnswer: %w", err)
 	}

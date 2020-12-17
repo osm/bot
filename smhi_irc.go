@@ -10,7 +10,7 @@ import (
 	"github.com/osm/irc"
 )
 
-const SMHI_FORECAST_CURRENT_SELECT_SQL = `SELECT
+const SMHI_FORECAST_CURRENT_SELECT_SQL_SQLITE = `SELECT
 	id,
 	timestamp,
 	inserted_at,
@@ -40,8 +40,42 @@ const SMHI_FORECAST_CURRENT_SELECT_SQL = `SELECT
 FROM
 	smhi_forecast
 WHERE
-	name = ?
-	AND substr(timestamp, 0, 11) = ?
+	name = $1
+	AND substr(timestamp, 0, 11) = $2
+ORDER BY timestamp`
+
+const SMHI_FORECAST_CURRENT_SELECT_SQL_POSTGRES = `SELECT
+	id,
+	timestamp,
+	inserted_at,
+	updated_at,
+	round(air_pressure, 1),
+	round(air_temperature, 1),
+	round(horizontal_visibility, 1),
+	round(maximum_precipitation_intensity, 1),
+	mean_precipitation_intensity,
+	mean_value_of_high_level_cloud_cover,
+	mean_value_of_low_level_cloud_cover,
+	mean_value_of_medium_level_cloud_cover,
+	mean_value_of_total_cloud_cover,
+	round(median_precipitation_intensity, 1),
+	round(minimum_precipitation_intensity, 1),
+	percent_of_precipitation_in_frozen_form,
+	precipitation_category,
+	precipitation_category_description,
+	relative_humidity,
+	thunder_probability,
+	weather_symbol,
+	weather_symbol_description,
+	wind_direction,
+	round(wind_gust_speed, 1),
+	round(wind_speed, 1),
+	wind_speed_description
+FROM
+	smhi_forecast
+WHERE
+	name = $1
+	AND substr(timestamp::text, 0, 11) = $2
 ORDER BY timestamp`
 
 // initSMHIDefaults sets default values for all settings.
@@ -161,8 +195,13 @@ func (b *bot) smhiCommandHandler(m *irc.Message) {
 			name = n
 		}
 
+		selectQuery := SMHI_FORECAST_CURRENT_SELECT_SQL_SQLITE
+		if b.DB.Engine == "postgres" {
+			selectQuery = SMHI_FORECAST_CURRENT_SELECT_SQL_POSTGRES
+		}
+
 		// Execute the query and return the results.
-		rows, err := b.query(SMHI_FORECAST_CURRENT_SELECT_SQL, name, d)
+		rows, err := b.query(selectQuery, name, d)
 		if err != nil {
 			b.privmsg(b.IRC.SMHIMsgWeatherError)
 			return

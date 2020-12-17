@@ -62,7 +62,7 @@ func (b *bot) marchHandler(m *irc.Message) {
 	// Make sure that we haven't archived the URL before, if so we'll
 	// return early.
 	var urlExists bool
-	b.queryRow("SELECT 1 FROM march WHERE url = ?", u).Scan(&urlExists)
+	b.queryRow("SELECT 1 FROM march WHERE url = $1", u).Scan(&urlExists)
 	if urlExists {
 		return
 	}
@@ -105,7 +105,7 @@ func (b *bot) marchHandler(m *irc.Message) {
 	}
 
 	// Everything seems to be in order, let's insert the archived item.
-	stmt, err := b.prepare("INSERT INTO march (id, url, foreign_id, inserted_at) VALUES(?, ?, ?, ?)")
+	stmt, err := b.prepare("INSERT INTO march (id, url, foreign_id, inserted_at) VALUES($1, $2, $3, $4)")
 	if err != nil {
 		b.logger.Printf("march: prepare insert failed: %w", err)
 		b.privmsg(b.DB.Err)

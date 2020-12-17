@@ -143,7 +143,7 @@ func (b *bot) parcelTrackingRemove(a *privmsgAction) {
 	}
 
 	// Delete it.
-	stmt, err := b.prepare("UPDATE parcel_tracking SET is_deleted = 1 WHERE alias = ?")
+	stmt, err := b.prepare("UPDATE parcel_tracking SET is_deleted = true WHERE alias = $1")
 	if err != nil {
 		b.logger.Printf("parcelTracking: %v", err)
 		b.privmsg(b.DB.Err)
@@ -219,7 +219,7 @@ func (b *bot) parcelTrackingList(a *privmsgAction) {
 	rows, err := b.query(`
 		SELECT alias, parcel_tracking_id, nick
 		FROM parcel_tracking
-		WHERE is_deleted = 0
+		WHERE is_deleted = false
 		ORDER BY inserted_at DESC
 	`)
 	if err != nil {
@@ -296,7 +296,7 @@ func (b *bot) fetchParcelTrackingInfo(a *privmsgAction) []postNordEvent {
 // string.
 func (b *bot) parcelTrackingAliasExists(alias string) string {
 	var existingID string
-	b.queryRow("SELECT parcel_tracking_id FROM parcel_tracking WHERE alias = ? AND is_deleted = 0", alias).Scan(&existingID)
+	b.queryRow("SELECT parcel_tracking_id FROM parcel_tracking WHERE alias = $1 AND is_deleted = false", alias).Scan(&existingID)
 	return existingID
 }
 
@@ -327,12 +327,12 @@ func (b *bot) insertParcelTracking(alias, id, nick string) {
 		inserted_at,
 		is_deleted
 	) VALUES (
-		?,
-		?,
-		?,
-		?,
-		?,
-		?
+		$1,
+		$2,
+		$3,
+		$4,
+		$5,
+		$6
 	);`)
 	if err != nil {
 		b.logger.Printf("parcelTracking: %v", err)
