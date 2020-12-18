@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/lib/pq v1.9.0
 	github.com/mattn/go-sqlite3 v1.11.0
+	github.com/nathan-osman/go-sunrise v0.0.0-20201029015502-9a83cd1a5746
 	github.com/osm/irc v1.1.1
 	github.com/osm/jsonc v1.0.0
 	github.com/osm/mex v1.0.0
