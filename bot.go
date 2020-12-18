@@ -297,6 +297,9 @@ type bot struct {
 		ParcelTrackingCmdInfo              string `json:"parcelTrackingCmdInfo"`
 		ParcelTrackingCmdFull              string `json:"parcelTrackingCmdFull"`
 		ParcelTrackingCmdList              string `json:"parcelTrackingCmdList"`
+
+		EnableWeek bool   `json:"enableWeek"`
+		WeekCmd    string `json:"weekCmd"`
 	}
 }
 
