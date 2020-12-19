@@ -365,6 +365,8 @@ func (b *bot) smhiPrintSun(name, n, d string) {
 		"<sunset>":      set.In(b.timezone).Format("15:04"),
 		"<sun_hours>":   fmt.Sprintf("%.0f", hours),
 		"<sun_minutes>": fmt.Sprintf("%.0f", minutes),
+		"<nick>":        n,
+		"<name>":        name,
 	})
 }
 
