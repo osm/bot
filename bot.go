@@ -193,6 +193,7 @@ type bot struct {
 		CronGrammarMsgExecLimit string `json:"cronGrammarMsgExecLimit"`
 		CronGrammarMsgIsLimited string `json:"cronGrammarMsgIsLimited"`
 		CronGrammarMsgRandomWho string `json:"cronGrammarMsgRandomWho"`
+		CronGrammarWeek         string `json:"cronGrammarWeek"`
 		CronGrammarGiphy        string `json:"cronGrammarGiphy"`
 		CronGrammarGiphySearch  string `json:"cronGrammarGiphySearch"`
 		CronGrammarTenorSearch  string `json:"cronGrammarTenorSearch"`

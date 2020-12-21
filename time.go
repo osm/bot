@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -27,4 +29,20 @@ func newDateWithDuration(d time.Duration) string {
 // newHour returns the current hour.
 func newHour() string {
 	return time.Now().Format("15")
+}
+
+// getWeek returns the week number for the given date, or the current week if
+// the argument is empty.
+func getWeek(date string) string {
+	t := time.Now()
+	if date != "" {
+		if d, err := time.Parse("2006-01-02", date); err == nil {
+			fmt.Println(err)
+			t = d
+		}
+
+	}
+
+	_, week := t.ISOWeek()
+	return strconv.Itoa(week)
 }

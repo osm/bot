@@ -1,10 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"strconv"
-	"time"
-
 	"github.com/osm/irc"
 )
 
@@ -31,15 +27,10 @@ func (b *bot) weekCommandHandler(m *irc.Message) {
 		return
 	}
 
-	t := time.Now()
+	date := ""
 	if len(a.args) == 1 {
-		if d, err := time.Parse("2006-01-02", a.args[0]); err == nil {
-			fmt.Println(err)
-			t = d
-		}
-
+		date = a.args[0]
 	}
 
-	_, week := t.ISOWeek()
-	b.privmsg(strconv.Itoa(week))
+	b.privmsg(getWeek(date))
 }

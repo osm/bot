@@ -138,6 +138,13 @@ func (cj *cronJob) Run() {
 		i = strings.Index(message, cj.bot.IRC.CronGrammarMsgRandomWho)
 	}
 
+	// Replace all occurences of <week> with the current week number.
+	i = strings.Index(message, cj.bot.IRC.CronGrammarWeek)
+	for i != -1 {
+		message = message[0:i] + getWeek("") + message[i+len(cj.bot.IRC.CronGrammarWeek):]
+		i = strings.Index(message, cj.bot.IRC.CronGrammarWeek)
+	}
+
 	// Replace all occurences of <giphy> with a gif from giphy.
 	i = strings.Index(message, cj.bot.IRC.CronGrammarGiphy)
 	for i != -1 {

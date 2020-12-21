@@ -75,6 +75,9 @@ func (b *bot) initCronDefaults() {
 	if b.IRC.CronGrammarMsgRandomWho == "" {
 		b.IRC.CronGrammarMsgRandomWho = "<random_who>"
 	}
+	if b.IRC.CronGrammarWeek == "" {
+		b.IRC.CronGrammarGiphy = "<week>"
+	}
 	if b.IRC.CronGrammarGiphy == "" {
 		b.IRC.CronGrammarGiphy = "<giphy>"
 	}
