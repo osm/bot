@@ -8,7 +8,6 @@ import (
 	"math/rand"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/osm/irc"
 )
@@ -19,11 +18,6 @@ var (
 	GiphyUnknownStatusCode = errors.New("Expected status code 200 from the Giphy API")
 	GiphyNothingFound      = errors.New("Nothing found")
 )
-
-// init seeds the randomizer.
-func init() {
-	rand.Seed(time.Now().Unix())
-}
 
 // initGiphyDefaults sets default values for all settings.
 func (b *bot) initGiphyDefaults() {

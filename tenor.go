@@ -5,10 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/osm/irc"
 )
@@ -18,11 +16,6 @@ var (
 	TenorNoAPIKey     = errors.New("You need to set a Tenor API key")
 	TenorNothingFound = errors.New("Nothing found")
 )
-
-// init seeds the randomizer.
-func init() {
-	rand.Seed(time.Now().Unix())
-}
 
 // iniTenorDefaults sets default values for all settings.
 func (b *bot) initTenorDefaults() {
