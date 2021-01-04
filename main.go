@@ -16,7 +16,7 @@ func main() {
 
 	if *version {
 		fmt.Fprintf(os.Stdout, "%s\n", VERSION)
-		os.Exit(1)
+		os.Exit(0)
 	}
 
 	if *configPath == "" {
