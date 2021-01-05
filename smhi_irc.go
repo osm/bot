@@ -105,7 +105,7 @@ const smhiForecastCmdRegexpSpace = `( )?`
 const smhiForecastCmdRegexpNick = `([0-9a-zA-ZåäöÅÄÖ_\-\*,]+)`
 const smhiForecastCmdRegexpSubCommands = `(sun|sol)?`
 const smhiForecastCmdRegexpDate = `((tomorrow|imorgon)|(\d\d\d\d-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])))?`
-const smhiForecastCmdRegexpTime = `((0[0-9]|1[0-9]|2[0-3])((:|.)([0-9]|[0-5][0-9]))?)?`
+const smhiForecastCmdRegexpTime = `((0?[0-9]|1[0-9]|2[0-3])((:|.)([0-9]|[0-5][0-9]))?)?`
 
 var smhiForecastCmdRegexp = regexp.MustCompile(fmt.Sprintf(`^%s%s%s%s%s%s%s$`,
 	smhiForecastCmdRegexpNick,
