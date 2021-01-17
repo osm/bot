@@ -121,6 +121,7 @@ func (b *bot) initIRC() {
 
 	if b.IRC.EnableLogging {
 		b.IRC.client.Handle("PRIVMSG", b.loggingHandler)
+		b.IRC.client.Handle("PRIVMSG", b.seenHandler)
 	}
 
 	if b.IRC.EnableLyssnar {

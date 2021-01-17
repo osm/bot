@@ -172,7 +172,12 @@ type bot struct {
 		ChattistikCmdYesterday string `json:"chattistikCmdYesterday"`
 		ChattistikMsgNoStats   string `json:"chattistikMsgNoStats"`
 		EnableChattistik       bool   `json:"enableChattistik"`
-		EnableLogging          bool   `json:"enableLogging"`
+
+		EnableLogging bool `json:"enableLogging"`
+
+		SeenCmd         string `json:"seenCmd"`
+		SeenMsgFound    string `json:"seenMsgFound"`
+		SeenMsgNotFound string `json:"seenMsgNotFound"`
 
 		EnableCron bool `json:"enableCron"`
 
