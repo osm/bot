@@ -174,6 +174,11 @@ func (b *bot) initIRC() {
 		b.IRC.client.Handle("PRIVMSG", b.weekCommandHandler)
 	}
 
+	if b.IRC.EnableGoogleSearch {
+		b.initGoogleSearchDefaults()
+		b.IRC.client.Handle("PRIVMSG", b.googleSearchCommandHandler)
+	}
+
 	// This goroutine handles the connection to the IRC server. The IRC
 	// library will automatically try to reconnect if the connection dies
 	// for some reason.

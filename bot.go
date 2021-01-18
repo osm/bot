@@ -307,6 +307,9 @@ type bot struct {
 
 		EnableWeek bool   `json:"enableWeek"`
 		WeekCmd    string `json:"weekCmd"`
+
+		EnableGoogleSearch bool   `json:"enableGoogleSearch"`
+		GoogleSearchCmd    string `json:"googleSearchCmd"`
 	}
 }
 
