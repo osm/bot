@@ -94,6 +94,9 @@ func (b *bot) initSMHIDefaults() {
 	if b.IRC.SMHIMsgWeather == "" {
 		b.IRC.SMHIMsgWeather = "<weather_symbol_description>, <air_temperature> C"
 	}
+	if b.IRC.SMHIMsgWeatherFull == "" {
+		b.IRC.SMHIMsgWeather = "<date> <time>, <weather_symbol_description>, <air_temperature> C"
+	}
 	if b.IRC.SMHIMsgSun == "" {
 		b.IRC.SMHIMsgSun = "sunrise: <sunrise>, sunset: <sunset>, total sun time: <sun_hours>h <sun_minutes>m"
 	}
@@ -103,7 +106,7 @@ func (b *bot) initSMHIDefaults() {
 // groups.
 const smhiForecastCmdRegexpSpace = `( )?`
 const smhiForecastCmdRegexpNick = `([0-9a-zA-ZåäöÅÄÖ_\-\*,]+)`
-const smhiForecastCmdRegexpSubCommands = `(sun|sol)?`
+const smhiForecastCmdRegexpSubCommands = `(sun|sol|fullforecast|prognos)?`
 const smhiForecastCmdRegexpDate = `((tomorrow|imorgon)|(202[0-9]-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])))?`
 const smhiForecastCmdRegexpTime = `((0?[0-9]|1[0-9]|2[0-3])((:|.)([0-9]|[0-5][0-9]))?)?`
 
@@ -212,6 +215,8 @@ func (b *bot) smhiCommandHandler(m *irc.Message) {
 
 		if subCmd == "forecast" {
 			b.smhiPrintForecast(name, n, d, h)
+		} else if subCmd == "fullforecast" || subCmd == "prognos" {
+			b.smhiPrintFullForecast(name, n)
 		} else {
 			b.smhiPrintSun(name, n, d)
 		}
@@ -333,6 +338,120 @@ func (b *bot) smhiPrintForecast(name, n, d string, h int) {
 	})
 }
 
+func (b *bot) smhiPrintFullForecast(name, n string) {
+	selectQuery := strings.Replace(
+		SMHI_FORECAST_CURRENT_SELECT_SQL_SQLITE,
+		"AND substr(timestamp, 0, 11) = $2",
+		"AND timestamp >= current_timestamp",
+		-1,
+	)
+	if b.DB.Engine == "postgres" {
+		selectQuery = strings.Replace(
+			SMHI_FORECAST_CURRENT_SELECT_SQL_POSTGRES,
+			"AND substr(timestamp::text, 0, 11) = $2",
+			"AND timestamp >= now()",
+			-1,
+		)
+	}
+
+	// Execute the query and return the results.
+	rows, err := b.query(selectQuery, name)
+	if err != nil {
+		b.privmsg(b.IRC.SMHIMsgWeatherError)
+		return
+	}
+	defer rows.Close()
+
+	// Append forecasts for each returned row.
+	var forecasts []smhiForecast
+	for rows.Next() {
+		var fc smhiForecast
+		err = rows.Scan(
+			&fc.Id,
+			&fc.Timestamp,
+			&fc.InsertedAt,
+			&fc.UpdatedAt,
+			&fc.AirPressure,
+			&fc.AirTemperature,
+			&fc.HorizontalVisibility,
+			&fc.MaximumPrecipitationIntensity,
+			&fc.MeanPrecipitationIntensity,
+			&fc.MeanValueOfHighLevelCloudCover,
+			&fc.MeanValueOfLowLevelCloudCover,
+			&fc.MeanValueOfMediumLevelCloudCover,
+			&fc.MeanValueOfTotalCloudCover,
+			&fc.MedianPrecipitationIntensity,
+			&fc.MinimumPrecipitationIntensity,
+			&fc.PercentOfPrecipitationInFrozenForm,
+			&fc.PrecipitationCategory,
+			&fc.PrecipitationCategoryDescription,
+			&fc.RelativeHumidity,
+			&fc.ThunderProbability,
+			&fc.WeatherSymbol,
+			&fc.WeatherSymbolDescription,
+			&fc.WindDirection,
+			&fc.WindGustSpeed,
+			&fc.WindSpeed,
+			&fc.WindSpeedDescription,
+		)
+		forecasts = append(forecasts, fc)
+	}
+
+	// No forecasts found, return early.
+	if len(forecasts) == 0 {
+		b.privmsg(b.IRC.SMHIMsgWeatherError)
+		return
+	}
+
+	pastebinCode := ""
+	for _, fc := range forecasts {
+		data := map[string]string{
+			"<id>":                                   fc.Id,
+			"<timestamp>":                            fc.Timestamp,
+			"<date>":                                 fc.Timestamp[0:10],
+			"<time>":                                 fc.Timestamp[11:16],
+			"<inserted_at>":                          fc.InsertedAt,
+			"<updated_at>":                           fc.UpdatedAt,
+			"<nick>":                                 n,
+			"<name>":                                 name,
+			"<air_pressure>":                         fc.AirPressure,
+			"<air_temperature>":                      fmtNumber(fc.AirTemperature, b.IRC.SMHILanguage),
+			"<horizontal_visibility>":                fc.HorizontalVisibility,
+			"<maximum_precipitation_intensity>":      fc.MaximumPrecipitationIntensity,
+			"<mean_precipitation_intensity>":         fc.MeanPrecipitationIntensity,
+			"<mean_value_of_high_level_cloud_cover>": fc.MeanValueOfHighLevelCloudCover,
+			"<mean_value_of_low_level_cloud_cover>":  fc.MeanValueOfLowLevelCloudCover,
+			"<mean_value_of_medium_level_cloud_cover>":  fc.MeanValueOfMediumLevelCloudCover,
+			"<mean_value_of_total_cloud_cover>":         fc.MeanValueOfTotalCloudCover,
+			"<median_precipitation_intensity>":          fc.MedianPrecipitationIntensity,
+			"<minimum_precipitation_intensity>":         fc.MinimumPrecipitationIntensity,
+			"<percent_of_precipitation_in_frozen_form>": fc.PercentOfPrecipitationInFrozenForm,
+			"<precipitation_category>":                  fc.PrecipitationCategory,
+			"<precipitation_category_description>":      fc.PrecipitationCategoryDescription,
+			"<relative_humidity>":                       fc.RelativeHumidity,
+			"<thunder_probability>":                     fc.ThunderProbability,
+			"<weather_symbol>":                          fc.WeatherSymbol,
+			"<weather_symbol_description>":              fc.WeatherSymbolDescription,
+			"<wind_direction>":                          fc.WindDirection,
+			"<wind_gust_speed>":                         fc.WindGustSpeed,
+			"<wind_speed>":                              fmtNumber(fc.WindSpeed, b.IRC.SMHILanguage),
+			"<wind_speed_description>":                  fc.WindSpeedDescription,
+		}
+
+		code := b.IRC.SMHIMsgWeatherFull
+		for k, v := range data {
+			code = strings.ReplaceAll(code, k, v)
+		}
+		if pastebinCode == "" {
+			pastebinCode = fmt.Sprintf("%s", code)
+		} else {
+			pastebinCode = fmt.Sprintf("%s\n%s", pastebinCode, code)
+		}
+	}
+
+	b.newPaste("smhi", pastebinCode)
+}
+
 // smhiPrintSun prints the sunrise and sunset times for the requested name.
 func (b *bot) smhiPrintSun(name, n, d string) {
 	// Parse the given date into a time.Time object.
@@ -350,8 +469,6 @@ func (b *bot) smhiPrintSun(name, n, d string) {
 	diff := set.Sub(rise)
 	hours := math.Floor(diff.Hours())
 	minutes := math.Floor(diff.Minutes() - hours*60)
-
-	fmt.Println(hours, minutes)
 
 	// Return the message.
 	b.privmsgph(b.IRC.SMHIMsgSun, map[string]string{

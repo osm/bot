@@ -283,6 +283,7 @@ type bot struct {
 		SMHICmdWeather        string `json:"smhiCmdWeather"`
 		SMHIMsgWeatherError   string `json:"smhiMsgWeatherError"`
 		SMHIMsgWeather        string `json:"smhiMsgWeather"`
+		SMHIMsgWeatherFull    string `json:"smhiMsgWeatherFull"`
 		SMHIMsgSun            string `json:"smhiMsgSun"`
 		SMHIForecastLocations map[string]struct {
 			Alias     string  `json:"alias"`
