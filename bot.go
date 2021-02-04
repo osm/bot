@@ -270,6 +270,7 @@ type bot struct {
 		FactoidMsgCount  string `json:"factoidMsgCount"`
 
 		PastebinAPIKey string `json:"pastebinApiKey"`
+		EnableDumpinen bool   `json:"enableDumpinen"`
 
 		Dictionaries []struct {
 			Trigger     string `json:"trigger"`
