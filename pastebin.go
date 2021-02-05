@@ -14,7 +14,12 @@ func (b *bot) newPaste(title, content string) {
 	var err error
 
 	if b.IRC.EnableDumpinen {
-		d := dumpinen.NewClient(dumpinen.WithAddr("https://dumpinen.com"))
+		opts := []dumpinen.Option{
+			dumpinen.WithAddr("https://dumpinen.com"),
+			dumpinen.WithContentType("text/plain; charset=utf-8"),
+		}
+
+		d := dumpinen.NewClient(opts...)
 		url, err = d.Dump(strings.NewReader(content))
 		if err != nil {
 			b.logger.Printf("dumpinen err: %v\n", err)

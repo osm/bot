@@ -8,6 +8,8 @@ github.com/nathan-osman/go-sunrise v0.0.0-20201029015502-9a83cd1a5746 h1:5+ym5FP
 github.com/nathan-osman/go-sunrise v0.0.0-20201029015502-9a83cd1a5746/go.mod h1:kCE4+NvReDuwiJGk03l6QONGmYy805GQP3xGcCm8cBg=
 github.com/osm/dumpinen v1.0.0 h1:ehb1W4Gamz6lhXjGqZoMdm6mU+18UXX/CypP5hFaKMk=
 github.com/osm/dumpinen v1.0.0/go.mod h1:rUpHrnPih28WYO9yXyBCngSn9uv2z5oAUYq6ch15gaU=
+github.com/osm/dumpinen v1.1.0 h1:dyC5BVDaNDzkamXVCcyLScKegW9Tf8eyU8eux7wI294=
+github.com/osm/dumpinen v1.1.0/go.mod h1:rUpHrnPih28WYO9yXyBCngSn9uv2z5oAUYq6ch15gaU=
 github.com/osm/event v1.0.0 h1:pfdZ2QUAU9Cas1CMlw+CUpRtyIhhuI+rMy8cnkdAXO8=
 github.com/osm/event v1.0.0/go.mod h1:w0LNIYpkHaF62un5RwRuQv6CJP2l42m9iwcislaKZhU=
 github.com/osm/flen v1.0.0/go.mod h1:iEnnCNqUz0Nr10JEm7rXvGV/Afd/U6CLvblpFtUjbPw=
