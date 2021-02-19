@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"net/http"
 	"strings"
 
@@ -68,8 +69,11 @@ func (b *bot) urlMetaHandler(m *irc.Message) {
 	}
 	defer res.Body.Close()
 
+	// Limit the amount of data that is read to 10 MB.
+	lr := &io.LimitedReader{R: res.Body, N: 10000000}
+
 	// Extract the meta data and print it, if anything is returned.
-	md := mex.Extract(res.Body)
+	md := mex.Extract(lr)
 
 	description := strings.TrimSpace(md.Description)
 	title := strings.TrimSpace(md.Title)
