@@ -169,6 +169,7 @@ func (b *bot) cronAdd(expression, message string) {
 	if err != nil {
 		b.logger.Printf("cronAdd: %w", err)
 		b.privmsg(b.IRC.CronErr)
+		return
 	}
 
 	// Determine whether the message also holds an execution limit or not,
