@@ -252,6 +252,8 @@ type bot struct {
 		FactoidSubCmdAddDelimiter string `json:"factoidSubCmdAddDelimiter"`
 		FactoidSubCmdDelete       string `json:"factoidSubCmdDelete"`
 		FactoidSubCmdSnoop        string `json:"factoidSubCmdSnoop"`
+		FactoidSubCmdSnoopAuthor  string `json:"factoidSubCmdSnoopAuthor"`
+		FactoidSubCmdSnoopReply   string `json:"factoidSubCmdSnoopReply"`
 		FactoidSubCmdCount        string `json:"factoidSubCmdCount"`
 
 		FactoidGrammarAction      string `json:"factoidGrammarAction"`

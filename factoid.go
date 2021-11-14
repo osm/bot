@@ -44,6 +44,12 @@ func (b *bot) initFactoidDefaults() {
 	if b.IRC.FactoidSubCmdSnoop == "" {
 		b.IRC.FactoidSubCmdSnoop = "snoop"
 	}
+	if b.IRC.FactoidSubCmdSnoopAuthor == "" {
+		b.IRC.FactoidSubCmdSnoopAuthor = "snoop-author"
+	}
+	if b.IRC.FactoidSubCmdSnoopReply == "" {
+		b.IRC.FactoidSubCmdSnoopReply = "snoop-reply"
+	}
 	if b.IRC.FactoidSubCmdCount == "" {
 		b.IRC.FactoidSubCmdCount = "count"
 	}
@@ -142,18 +148,35 @@ func (b *bot) factoidHandler(m *irc.Message) {
 			return
 		}
 		b.factoidHandleDelete(a.args[1])
-	} else if a.cmd == b.IRC.FactoidCmd && subCmd == b.IRC.FactoidSubCmdSnoop && len(a.args) >= 2 {
+	} else if a.cmd == b.IRC.FactoidCmd && (subCmd == b.IRC.FactoidSubCmdSnoop ||
+		subCmd == b.IRC.FactoidSubCmdSnoopAuthor ||
+		subCmd == b.IRC.FactoidSubCmdSnoopReply) && len(a.args) >= 2 {
 		if b.shouldIgnore(m) {
 			return
 		}
-		b.factoidHandleSnoop(
-			strings.Replace(
+
+		if subCmd == b.IRC.FactoidSubCmdSnoop {
+			b.factoidHandleSnoop(strings.Replace(
 				a.msg,
 				fmt.Sprintf("%s %s ", b.IRC.FactoidCmd, b.IRC.FactoidSubCmdSnoop),
 				"",
 				1,
-			),
-		)
+			), "default")
+		} else if subCmd == b.IRC.FactoidSubCmdSnoopAuthor {
+			b.factoidHandleSnoop(strings.Replace(
+				a.msg,
+				fmt.Sprintf("%s %s ", b.IRC.FactoidCmd, b.IRC.FactoidSubCmdSnoopAuthor),
+				"",
+				1,
+			), "author")
+		} else {
+			b.factoidHandleSnoop(strings.Replace(
+				a.msg,
+				fmt.Sprintf("%s %s ", b.IRC.FactoidCmd, b.IRC.FactoidSubCmdSnoopReply),
+				"",
+				1,
+			), "reply")
+		}
 	} else if a.cmd == b.IRC.FactoidCmd && subCmd == b.IRC.FactoidSubCmdCount && len(a.args) >= 2 {
 		if b.shouldIgnore(m) {
 			return
@@ -205,9 +228,18 @@ func (b *bot) factoidHandleDelete(id string) {
 // factoidHandleSnoop finds information about the given factoid. If there are
 // more than five factoids found for the given trigger it'll send the message
 // as a private message instead so we don't flood the channel.
-func (b *bot) factoidHandleSnoop(trigger string) {
+func (b *bot) factoidHandleSnoop(ss, t string) {
+	var query string
+	if t == "default" {
+		query = "SELECT id, author, timestamp, reply, trigger FROM factoid WHERE trigger ILIKE $1 AND is_deleted = false"
+	} else if t == "author" {
+		query = "SELECT id, author, timestamp, reply, trigger FROM factoid WHERE author ILIKE $1 AND is_deleted = false"
+	} else {
+		query = "SELECT id, author, timestamp, reply, trigger FROM factoid WHERE reply ILIKE $1 AND is_deleted = false"
+	}
+
 	// Get all the relevant factoid information
-	rows, err := b.query("SELECT id, author, timestamp, reply FROM factoid WHERE trigger = $1 AND is_deleted = false", trigger)
+	rows, err := b.query(query, ss)
 	if err != nil {
 		b.logger.Printf("factoidHandleSnoop: %v", err)
 		b.privmsg(b.DB.Err)
@@ -222,14 +254,15 @@ func (b *bot) factoidHandleSnoop(trigger string) {
 		author    string
 		timestamp string
 		reply     string
+		trigger   string
 	}
 
 	// Fetch the facts.
 	var facts []fact
 	for rows.Next() {
-		var i, a, t, r string
-		rows.Scan(&i, &a, &t, &r)
-		facts = append(facts, fact{i, a, t, r})
+		var i, a, t, r, tr string
+		rows.Scan(&i, &a, &t, &r, &tr)
+		facts = append(facts, fact{i, a, t, r, tr})
 	}
 
 	// Determine the target of the information.
@@ -247,7 +280,7 @@ func (b *bot) factoidHandleSnoop(trigger string) {
 		data := map[string]string{
 			"<id>":        f.id,
 			"<author>":    f.author,
-			"<trigger>":   trigger,
+			"<trigger>":   f.trigger,
 			"<reply>":     f.reply,
 			"<timestamp>": f.timestamp,
 		}
@@ -270,7 +303,7 @@ func (b *bot) factoidHandleSnoop(trigger string) {
 	}
 
 	if target == "pastebin" {
-		b.newPaste(trigger, pastebinCode)
+		b.newPaste(ss, pastebinCode)
 	}
 }
 
