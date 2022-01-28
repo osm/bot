@@ -1,0 +1,6 @@
+github.com/osm/event v0.0.0-20180902164424-80bdd5969338 h1:msxE69/77AVhF4zhT6r/9fPL25m8ARte6At1Wbyk26Y=
+github.com/osm/event v0.0.0-20180902164424-80bdd5969338/go.mod h1:w0LNIYpkHaF62un5RwRuQv6CJP2l42m9iwcislaKZhU=
+github.com/osm/event v1.0.0 h1:pfdZ2QUAU9Cas1CMlw+CUpRtyIhhuI+rMy8cnkdAXO8=
+github.com/osm/event v1.0.0/go.mod h1:w0LNIYpkHaF62un5RwRuQv6CJP2l42m9iwcislaKZhU=
+github.com/osm/ww v1.0.0 h1:5616YyT9iwL4PyUh8FNdDMmpbbs2GcaLgBjdi6dxqRg=
+github.com/osm/ww v1.0.0/go.mod h1:+venM4UQIvdUh15aMvwsIUJ2sqHthoPy5TZ5FPKHL9Q=

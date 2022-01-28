@@ -1,0 +1,3 @@
+## About
+
+SMHI API client.
