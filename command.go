@@ -41,7 +41,7 @@ func (b *bot) initCommandDefaults() {
 // commandArgumentRegexp is a regexp that makes sure that we don't get
 // unwanted characters passed to the external commands that are to be
 // executed.
-var commandArgumentRegexp = regexp.MustCompile("^[a-zA-Z0-9åäöÅÄÖ0-9+*-\\/? ]*$")
+var commandArgumentRegexp = regexp.MustCompile("^[a-zA-Z0-9åäöÅÄÖ0-9+*-\\/?= ]*$")
 
 // commandHandler exposes external commands that are defined in the Commands
 // secion of the configuration file. If the IRC message matches a key of the
