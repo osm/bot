@@ -57,6 +57,12 @@ func (b *bot) initIRC() {
 		irc.WithUser(b.IRC.User),
 		irc.WithVersion(fmt.Sprintf("%s %s", b.IRC.Version, VERSION)),
 	}
+
+	// Append post connect messages, if there are any.
+	for _, pcm := range b.IRC.PostConnectMessages {
+		opts = append(opts, irc.WithPostConnectMessage(pcm.Target, pcm.Message))
+	}
+
 	b.IRC.client = irc.NewClient(opts...)
 
 	b.IRC.client.Handle("JOIN", b.operatorsHandler)

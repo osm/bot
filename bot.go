@@ -78,6 +78,11 @@ type bot struct {
 	IRC struct {
 		client *irc.Client
 
+		PostConnectMessages []struct {
+			Target  string `json:"target"`
+			Message string `json:"message"`
+		} `json:"postConnectMessages"`
+
 		// This is set to time.Now() each time a message is sent. We
 		// will check that time.Now() - lastSentMessage is greater
 		// than the value defined in "GracePeriod".
