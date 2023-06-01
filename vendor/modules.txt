@@ -1,22 +1,22 @@
-# github.com/lib/pq v1.9.0
+# github.com/lib/pq v1.10.9
 github.com/lib/pq
 github.com/lib/pq/oid
 github.com/lib/pq/scram
-# github.com/mattn/go-sqlite3 v1.11.0
+# github.com/mattn/go-sqlite3 v1.14.17
 github.com/mattn/go-sqlite3
-# github.com/nathan-osman/go-sunrise v0.0.0-20201029015502-9a83cd1a5746
+# github.com/nathan-osman/go-sunrise v1.1.0
 github.com/nathan-osman/go-sunrise
 # github.com/osm/dumpinen v1.2.0
 github.com/osm/dumpinen
 # github.com/osm/event v1.0.0
 github.com/osm/event
-# github.com/osm/irc v1.1.6
+# github.com/osm/irc v1.2.0
 github.com/osm/irc
 # github.com/osm/jsonc v1.0.0
 github.com/osm/jsonc
 # github.com/osm/mex v1.0.0
 github.com/osm/mex
-# github.com/osm/migrator v1.0.1
+# github.com/osm/migrator v1.1.1
 github.com/osm/migrator
 github.com/osm/migrator/repository
 # github.com/osm/pastebin v1.0.1
@@ -27,8 +27,8 @@ github.com/osm/postnord
 github.com/osm/smhi
 # github.com/osm/ww v1.0.0
 github.com/osm/ww
-# github.com/robfig/cron/v3 v3.0.0
+# github.com/robfig/cron/v3 v3.0.1
 github.com/robfig/cron/v3
-# golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
+# golang.org/x/net v0.10.0
 golang.org/x/net/html
 golang.org/x/net/html/atom

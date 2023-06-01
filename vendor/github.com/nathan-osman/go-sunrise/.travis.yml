@@ -1,11 +1,10 @@
 language: go
-sudo: false
 
 go:
-  - tip
+  - stable
 
 before_install:
-  - go get github.com/mattn/goveralls
+  - go install github.com/mattn/goveralls@latest
 
 script:
   - $GOPATH/bin/goveralls -service=travis-ci

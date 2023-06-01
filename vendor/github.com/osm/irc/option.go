@@ -61,3 +61,7 @@ func WithUser(u string) Option {
 func WithVersion(v string) Option {
 	return func(c *Client) { c.version = v }
 }
+
+func WithPostConnectMessage(t, m string) Option {
+	return func(c *Client) { c.postConnectMessages = append(c.postConnectMessages, postConnectMessage{t, m}) }
+}

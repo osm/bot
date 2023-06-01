@@ -9,6 +9,11 @@ import (
 	"github.com/osm/event"
 )
 
+type postConnectMessage struct {
+	target  string
+	message string
+}
+
 // Client contains the IRC client
 type Client struct {
 	// Connection and address
@@ -26,15 +31,16 @@ type Client struct {
 	quit chan bool
 
 	// Client related variables
-	nick        string
-	user        string
-	realName    string
-	channels    []string
-	version     string
-	currentNick string
-	currentUser string
-	currentHost string
-	infoMu      sync.Mutex
+	nick                string
+	user                string
+	realName            string
+	channels            []string
+	version             string
+	currentNick         string
+	currentUser         string
+	currentHost         string
+	postConnectMessages []postConnectMessage
+	infoMu              sync.Mutex
 
 	// If this is true, all output will be logged
 	debug bool

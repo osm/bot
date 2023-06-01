@@ -68,6 +68,10 @@ func (c *Client) coreEvents() {
 		for _, ch := range c.channels {
 			c.Sendf("JOIN %s", ch)
 		}
+
+		for _, pcm := range c.postConnectMessages {
+			c.Privmsg(pcm.target, pcm.message)
+		}
 	})
 
 	// Handle CTCP version requests
