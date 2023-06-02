@@ -40,6 +40,7 @@ type Client struct {
 	currentUser         string
 	currentHost         string
 	postConnectMessages []postConnectMessage
+	postConnectModes    []string
 	infoMu              sync.Mutex
 
 	// If this is true, all output will be logged

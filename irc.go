@@ -63,6 +63,11 @@ func (b *bot) initIRC() {
 		opts = append(opts, irc.WithPostConnectMessage(pcm.Target, pcm.Message))
 	}
 
+	// Append post connect modes, if there are any.
+	for _, m := range b.IRC.PostConnectModes {
+		opts = append(opts, irc.WithPostConnectMode(m))
+	}
+
 	b.IRC.client = irc.NewClient(opts...)
 
 	b.IRC.client.Handle("JOIN", b.operatorsHandler)

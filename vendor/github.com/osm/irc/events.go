@@ -72,6 +72,10 @@ func (c *Client) coreEvents() {
 		for _, pcm := range c.postConnectMessages {
 			c.Privmsg(pcm.target, pcm.message)
 		}
+
+		for _, m := range c.postConnectModes {
+			c.Sendf("MODE %s %s", c.currentNick, m)
+		}
 	})
 
 	// Handle CTCP version requests

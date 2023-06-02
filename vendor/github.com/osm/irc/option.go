@@ -65,3 +65,7 @@ func WithVersion(v string) Option {
 func WithPostConnectMessage(t, m string) Option {
 	return func(c *Client) { c.postConnectMessages = append(c.postConnectMessages, postConnectMessage{t, m}) }
 }
+
+func WithPostConnectMode(m string) Option {
+	return func(c *Client) { c.postConnectModes = append(c.postConnectModes, m) }
+}
