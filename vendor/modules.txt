@@ -10,7 +10,7 @@ github.com/nathan-osman/go-sunrise
 github.com/osm/dumpinen
 # github.com/osm/event v1.0.0
 github.com/osm/event
-# github.com/osm/irc v1.3.0
+# github.com/osm/irc v1.3.1
 github.com/osm/irc
 # github.com/osm/jsonc v1.0.0
 github.com/osm/jsonc

@@ -2,6 +2,7 @@ package irc
 
 import (
 	"fmt"
+	"time"
 )
 
 // Handle registers a new event handler
@@ -61,20 +62,22 @@ func (c *Client) coreEvents() {
 
 	// Things to do after a successful connect
 	c.Handle("001", func(m *Message) {
-		if len(c.channels) < 1 {
-			return
-		}
-
-		for _, ch := range c.channels {
-			c.Sendf("JOIN %s", ch)
-		}
-
+		// The post connect messages and modes should occur before
+		// joining any channels.
 		for _, pcm := range c.postConnectMessages {
 			c.Privmsg(pcm.target, pcm.message)
 		}
-
 		for _, m := range c.postConnectModes {
 			c.Sendf("MODE %s %s", c.currentNick, m)
+		}
+
+		// To make sure all the messages and modes has been
+		// successfully applied before we join a channel we'll sleep
+		// for a short while.
+		time.Sleep(3 * time.Second)
+
+		for _, ch := range c.channels {
+			c.Sendf("JOIN %s", ch)
 		}
 	})
 
