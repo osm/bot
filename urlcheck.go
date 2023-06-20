@@ -31,6 +31,10 @@ func (b *bot) urlCheckHandler(m *irc.Message) {
 		return
 	}
 
+	if b.shouldIgnore(m) {
+		return
+	}
+
 	url := urlRegexp.FindString(a.msg)
 	if url == "" {
 		return
