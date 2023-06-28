@@ -313,7 +313,7 @@ func (b *bot) factoidHandleCount(trigger string) {
 	var count int
 	err := b.queryRow("SELECT COUNT(*) FROM factoid WHERE trigger = $1 AND is_deleted = false", trigger).Scan(&count)
 	if err != nil && err != sql.ErrNoRows {
-		b.logger.Printf("factoidHandleCount: %w", err)
+		b.logger.Printf("factoidHandleCount: %v", err)
 		b.privmsg(b.DB.Err)
 		return
 	}

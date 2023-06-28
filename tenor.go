@@ -75,14 +75,14 @@ func (b *bot) tenorSearch(query string) (string, error) {
 
 	res, err := http.Get(url)
 	if err != nil {
-		b.logger.Printf("tenor: %w", err)
+		b.logger.Printf("tenor: %v", err)
 		return "", err
 	}
 
 	defer res.Body.Close()
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		b.logger.Printf("tenor: %w", err)
+		b.logger.Printf("tenor: %v", err)
 		return "", err
 	}
 
@@ -95,7 +95,7 @@ func (b *bot) tenorSearch(query string) (string, error) {
 	}
 	err = json.Unmarshal(data, &d)
 	if err != nil {
-		b.logger.Printf("tenor: %w", err)
+		b.logger.Printf("tenor: %v", err)
 		return "", err
 	}
 

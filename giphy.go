@@ -103,14 +103,14 @@ func (b *bot) giphyRandom() (string, error) {
 
 	res, err := http.Get(url)
 	if err != nil {
-		b.logger.Printf("giphy: %w", err)
+		b.logger.Printf("giphy: %v", err)
 		return "", err
 	}
 
 	defer res.Body.Close()
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		b.logger.Printf("giphy: %w", err)
+		b.logger.Printf("giphy: %v", err)
 		return "", err
 	}
 
@@ -120,7 +120,7 @@ func (b *bot) giphyRandom() (string, error) {
 	}
 	err = json.Unmarshal(data, &g)
 	if err != nil {
-		b.logger.Printf("giphy: %w", err)
+		b.logger.Printf("giphy: %v", err)
 		return "", err
 	}
 
@@ -147,14 +147,14 @@ func (b *bot) giphySearch(query string) (string, error) {
 
 	res, err := http.Get(url)
 	if err != nil {
-		b.logger.Printf("giphy: %w", err)
+		b.logger.Printf("giphy: %v", err)
 		return "", err
 	}
 
 	defer res.Body.Close()
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		b.logger.Printf("giphy: %w", err)
+		b.logger.Printf("giphy: %v", err)
 		return "", err
 	}
 
@@ -164,7 +164,7 @@ func (b *bot) giphySearch(query string) (string, error) {
 	}
 	err = json.Unmarshal(data, &g)
 	if err != nil {
-		b.logger.Printf("giphy: %w", err)
+		b.logger.Printf("giphy: %v", err)
 		return "", err
 	}
 

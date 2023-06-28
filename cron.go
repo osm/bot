@@ -119,7 +119,7 @@ func (cj *cronJob) Run() {
 	// Increment the exec_count in the database as well.
 	stmt, err := cj.bot.prepare("UPDATE cron SET exec_count = $1 WHERE id = $2")
 	if err != nil {
-		cj.bot.logger.Printf("cronJobRun: %w", err)
+		cj.bot.logger.Printf("cronJobRun: %v", err)
 		return
 	}
 	defer stmt.Close()
@@ -127,7 +127,7 @@ func (cj *cronJob) Run() {
 	// Execute the UPDATE statement.
 	_, err = stmt.Exec(cj.execCount, cj.id)
 	if err != nil {
-		cj.bot.logger.Printf("cronJobRun: %w", err)
+		cj.bot.logger.Printf("cronJobRun: %v", err)
 		return
 	}
 

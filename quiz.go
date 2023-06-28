@@ -171,13 +171,13 @@ type quizRound struct {
 func quizLoadFromFile(filePath string) ([]QuizQuestion, error) {
 	file, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("quizLoadFromFile: cant open quiz file %s, %w", filePath, err)
+		return nil, fmt.Errorf("quizLoadFromFile: cant open quiz file %s, %v", filePath, err)
 	}
 
 	var questions []QuizQuestion
 	err = json.Unmarshal(file, &questions)
 	if err != nil {
-		return nil, fmt.Errorf("quizLoadFromFile: cant decode quiz file, %w", err)
+		return nil, fmt.Errorf("quizLoadFromFile: cant decode quiz file, %v", err)
 	}
 
 	return questions, nil
@@ -187,19 +187,19 @@ func quizLoadFromFile(filePath string) ([]QuizQuestion, error) {
 func quizLoadFromHttp(url string) ([]QuizQuestion, error) {
 	res, err := http.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("quizLoadFromHttp: cant open url %s, %w", url, err)
+		return nil, fmt.Errorf("quizLoadFromHttp: cant open url %s, %v", url, err)
 	}
 
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return nil, fmt.Errorf("quizLoadFromHttp: cant read body from %s, %w", url, err)
+		return nil, fmt.Errorf("quizLoadFromHttp: cant read body from %s, %v", url, err)
 	}
 
 	var questions []QuizQuestion
 	err = json.Unmarshal(body, &questions)
 	if err != nil {
-		return nil, fmt.Errorf("quizLoadFromHttp: cant decode quiz from %s, %s, %w", url, body, err)
+		return nil, fmt.Errorf("quizLoadFromHttp: cant decode quiz from %s, %s, %v", url, body, err)
 	}
 
 	return questions, nil
@@ -252,7 +252,7 @@ func newQuizRound(bot *bot, name string, nQuestions int) *quizRound {
 	// Something went wrong when the quiz was loaded, log the error and
 	// print a message to the channel.
 	if err != nil {
-		bot.logger.Printf("%w", err)
+		bot.logger.Printf("%v", err)
 		bot.privmsgph(bot.IRC.QuizMsgLoadError, map[string]string{
 			"<name>": name,
 		})
@@ -326,7 +326,7 @@ func (qr *quizRound) answer(n, a string) {
 	// Also, add stats to the database.
 	stmt, err := qr.bot.prepare("INSERT INTO quiz_stat (id, nick, quiz_round_id, quiz_name, category, question, answer, inserted_at) VALUES($1, $2, $3, $4, $5, $6, $7, $8)")
 	if err != nil {
-		qr.bot.logger.Printf("quizAnswer: %w", err)
+		qr.bot.logger.Printf("quizAnswer: %v", err)
 	}
 	defer stmt.Close()
 	_, err = stmt.Exec(
@@ -340,7 +340,7 @@ func (qr *quizRound) answer(n, a string) {
 		newTimestamp(),
 	)
 	if err != nil {
-		qr.bot.logger.Printf("quizAnswer: %w", err)
+		qr.bot.logger.Printf("quizAnswer: %v", err)
 	}
 
 	// Pop a new qusetion.

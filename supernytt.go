@@ -61,14 +61,14 @@ func (b *bot) supernyttHandler() {
 func (b *bot) getSupernyttData() []SNEntry {
 	res, err := http.Get("https://direkte.vg.no/api/ab/newsflow/5d0b819f4c641c00121148c9/entries?offset=0&limit=5&showAdverts=false")
 	if err != nil {
-		b.logger.Printf("getSupernyttData: %w", err)
+		b.logger.Printf("getSupernyttData: %v", err)
 		return nil
 	}
 
 	defer res.Body.Close()
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		b.logger.Printf("getSupernyttData: %w", err)
+		b.logger.Printf("getSupernyttData: %v", err)
 		return nil
 	}
 
@@ -77,7 +77,7 @@ func (b *bot) getSupernyttData() []SNEntry {
 	}
 	err = json.Unmarshal(data, &sn)
 	if err != nil {
-		b.logger.Printf("getSupernyttData: %w", err)
+		b.logger.Printf("getSupernyttData: %v", err)
 		return nil
 	}
 
@@ -98,7 +98,7 @@ func (b *bot) hasSNExternalID(externalID string) bool {
 func (b *bot) insertSNEntry(e *SNEntry) {
 	stmt, err := b.prepare("INSERT INTO supernytt (id, external_id, title, content, external_created, inserted_at) VALUES($1, $2, $3, $4, $5, $6);")
 	if err != nil {
-		b.logger.Printf("insertSNEntry: %w", err)
+		b.logger.Printf("insertSNEntry: %v", err)
 		return
 	}
 	defer stmt.Close()
@@ -112,7 +112,7 @@ func (b *bot) insertSNEntry(e *SNEntry) {
 		newTimestamp(),
 	)
 	if err != nil {
-		b.logger.Printf("insertSNEntry: %w", err)
+		b.logger.Printf("insertSNEntry: %v", err)
 	}
 }
 

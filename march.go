@@ -83,7 +83,7 @@ func (b *bot) marchHandler(m *irc.Message) {
 
 	// Do the basic error checking.
 	if err != nil {
-		b.logger.Printf("march: post error: %w", err)
+		b.logger.Printf("march: post error: %v", err)
 		return
 	}
 	if resp.StatusCode != 201 {
@@ -92,7 +92,7 @@ func (b *bot) marchHandler(m *irc.Message) {
 	}
 	foreignID, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		b.logger.Printf("march: unable to read body: %w", err)
+		b.logger.Printf("march: unable to read body: %v", err)
 		return
 	}
 	if string(foreignID) == "" {
@@ -107,7 +107,7 @@ func (b *bot) marchHandler(m *irc.Message) {
 	// Everything seems to be in order, let's insert the archived item.
 	stmt, err := b.prepare("INSERT INTO march (id, url, foreign_id, inserted_at) VALUES($1, $2, $3, $4)")
 	if err != nil {
-		b.logger.Printf("march: prepare insert failed: %w", err)
+		b.logger.Printf("march: prepare insert failed: %v", err)
 		b.privmsg(b.DB.Err)
 		return
 	}
@@ -115,7 +115,7 @@ func (b *bot) marchHandler(m *irc.Message) {
 
 	_, err = stmt.Exec(newUUID(), u, foreignID, newTimestamp())
 	if err != nil {
-		b.logger.Printf("march: insert failed: %w", err)
+		b.logger.Printf("march: insert failed: %v", err)
 		b.privmsg(b.DB.Err)
 		return
 	}

@@ -40,7 +40,7 @@ func (b *bot) updateNotifierHandler() {
 		// Download the HTML source of the bot repo.
 		res, err := http.Get("https://github.com/osm/bot")
 		if err != nil {
-			b.logger.Printf("updateNotifier: %w", err)
+			b.logger.Printf("updateNotifier: %v", err)
 			return
 		}
 
@@ -48,7 +48,7 @@ func (b *bot) updateNotifierHandler() {
 		defer res.Body.Close()
 		data, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			b.logger.Printf("updateNotifier: %w", err)
+			b.logger.Printf("updateNotifier: %v", err)
 			return
 		}
 

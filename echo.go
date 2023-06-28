@@ -22,7 +22,7 @@ func (b *bot) initEcho() {
 func (b *bot) echoHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		b.HTTP.logger.Printf("echo: unable to read body, %w", err)
+		b.HTTP.logger.Printf("echo: unable to read body, %v", err)
 		http.Error(w, "Error reading request body", http.StatusInternalServerError)
 	}
 
