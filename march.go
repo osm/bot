@@ -97,11 +97,11 @@ func (b *bot) marchHandler(m *irc.Message) {
 		return
 	}
 	if string(foreignID) == "" {
-		b.logger.Printf("march: no foreign id returned", err)
+		b.logger.Printf("march: no foreign id returned: %v", err)
 		return
 	}
 	if !isUUID(string(foreignID)) {
-		b.logger.Printf("march: foreign id isn't a valid uuid", err)
+		b.logger.Printf("march: foreign id isn't a valid uuid: %v", err)
 		return
 	}
 
