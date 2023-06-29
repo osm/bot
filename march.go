@@ -79,13 +79,14 @@ func (b *bot) marchHandler(m *irc.Message) {
 	req.Header.Add("Authorization", "Basic "+base64Encode(b.IRC.MarchCredentials))
 	req.Header.Add("Content-type", "application/x-www-form-urlencoded")
 	resp, err := client.Do(req)
-	defer resp.Body.Close()
 
 	// Do the basic error checking.
 	if err != nil {
 		b.logger.Printf("march: post error: %v", err)
 		return
 	}
+	defer resp.Body.Close()
+
 	if resp.StatusCode != 201 {
 		b.logger.Printf("march: unexpected status code: %d", resp.StatusCode)
 		return
