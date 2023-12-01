@@ -76,15 +76,17 @@ func (b *bot) marchHandler(m *irc.Message) {
 	// the march server.
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", b.IRC.MarchURL, postData)
-	req.Header.Add("Authorization", "Basic "+base64Encode(b.IRC.MarchCredentials))
-	req.Header.Add("Content-type", "application/x-www-form-urlencoded")
-	resp, err := client.Do(req)
 
 	// Do the basic error checking.
 	if err != nil {
 		b.logger.Printf("march: post error: %v", err)
 		return
 	}
+
+	req.Header.Add("Authorization", "Basic "+base64Encode(b.IRC.MarchCredentials))
+	req.Header.Add("Content-type", "application/x-www-form-urlencoded")
+	resp, err := client.Do(req)
+
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 201 {
