@@ -69,6 +69,8 @@ func (b *bot) commandHandler(m *irc.Message) {
 		args = append(args, a.args...)
 	}
 
+	args = append(args, a.nick)
+
 	cmd := exec.Command(c.bin, args...)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
