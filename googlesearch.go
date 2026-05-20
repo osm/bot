@@ -54,7 +54,7 @@ func (b *bot) googleSearchCommandHandler(m *irc.Message) {
 
 	// Google doesn't allow us to search unless we have a "real" user
 	// agent.
-	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36")
 	req.Header.Set("Referer", "https://www.google.com/")
 
 	// Perform the request.
